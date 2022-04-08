@@ -1371,7 +1371,7 @@ void KisDocument::slotAutoSaveImpl(std::unique_ptr<KisDocument> &&optionalCloned
 
         setInfiniteAutoSaveInterval();
 
-    } else if (!result == KritaUtils::JobResult::Success) {
+    } else if (result != KritaUtils::JobResult::Success) {
         setEmergencyAutoSaveInterval();
     } else {
         d->modifiedAfterAutosave = false;
