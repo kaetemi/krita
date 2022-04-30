@@ -146,8 +146,10 @@ void KoResourcePopupAction::indexChanged(const QModelIndex &modelIndex)
         KoPatternSP pattern = resource.dynamicCast<KoPattern>();
         if (gradient) {
             QGradient *qg = gradient->cloneAndBakeVariableColors(d->canvasResourcesInterface)->toQGradient();
-            qg->setCoordinateMode(QGradient::ObjectBoundingMode);
-            d->background = QSharedPointer<KoShapeBackground>(new KoGradientBackground(qg));
+            if (qg) {
+                qg->setCoordinateMode(QGradient::ObjectBoundingMode);
+                d->background = QSharedPointer<KoShapeBackground>(new KoGradientBackground(qg));
+            }
         } else if (pattern) {
             KoImageCollection *collection = new KoImageCollection();
             d->background = QSharedPointer<KoShapeBackground>(new KoPatternBackground(collection));
