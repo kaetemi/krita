@@ -1021,7 +1021,11 @@ set_package_properties(QUAZIP PROPERTIES
     TYPE REQUIRED
     PURPOSE "Needed for reading and writing KRA and ORA files"
 )
-
+##
+## Check for harfbuzz
+##
+pkg_check_modules(HARFBUZZ REQUIRED IMPORTED_TARGET harfbuzz>=4.0.0)
+include_directories(${HARFBUZZ_INCLUDE_DIRS})
 ##
 ## Check for freetype
 ##
