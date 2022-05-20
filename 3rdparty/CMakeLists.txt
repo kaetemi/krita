@@ -399,6 +399,5 @@ if (UNIX AND NOT APPLE)
 endif()
 
 add_subdirectory(ext_webp)
-add_subdirectory(ext_harfbuzz)
 add_subdirectory(ext_fribidi)
 add_subdirectory(ext_raqm)
