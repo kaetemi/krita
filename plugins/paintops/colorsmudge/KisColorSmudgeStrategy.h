@@ -19,6 +19,8 @@ public:
 
     virtual void initializePainting() = 0;
 
+    virtual QRect neededRect(const QRect &srcRect) = 0;
+
     virtual void updateMask(KisDabCache *dabCache,
                             const KisPaintInformation& info,
                             const KisDabShape &shape,

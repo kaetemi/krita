@@ -149,6 +149,14 @@ void KisColorSmudgeStrategyBase::initializePaintingImpl(const KoColorSpace *dstC
     }
 }
 
+QRect KisColorSmudgeStrategyBase::neededRect(const QRect &srcRect)
+{
+    if (m_filter) {
+        return m_filter->neededRect(srcRect, m_filterConfiguration, m_initializationPainter->device()->defaultBounds()->currentLevelOfDetail());
+    }
+    return srcRect;
+}
+
 const KoColorSpace *KisColorSmudgeStrategyBase::preciseColorSpace() const
 {
     // verify that initialize() has already been called!
@@ -264,7 +272,7 @@ KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, 
         } else {
             const quint8 smudgeRateOpacity = this->smearRateOpacity(opacity, smudgeRateValue);
             blendInBackgroundWithBlurring(m_blendDevice, srcSampleDevice,
-                                          dstRect,
+                                          srcRect, dstRect,
                                           m_preparedDullingColor,
                                           smudgeRateOpacity, smudgeRadiusValue);
         }
@@ -334,7 +342,7 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithDulling(KisFixedPaintDevic
 }
 
 void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src,
-                                                               const QRect &dstRect,
+                                                               const QRect &srcRect, const QRect &dstRect,
                                                                const KoColor &preparedDullingColor,
                                                                const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue)
 {
@@ -343,13 +351,14 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
     // Radius above 1.0 will blend in the dulling color on top of blurring
     m_filterConfiguration->setProperty("horizRadius", 30.0); // TODO
     m_filterConfiguration->setProperty("vertRadius", 30.0); // TODO
-    QRect neededRect = m_filter->neededRect(dstRect, m_filterConfiguration, m_initializationPainter->device()->defaultBounds()->currentLevelOfDetail());
+    // QRect neededRect = m_filter->neededRect(dstRect, m_filterConfiguration, m_initializationPainter->device()->defaultBounds()->currentLevelOfDetail());
 
     // Copy the original data to the destination
     // src->readBytes(dst->data(), dstRect);
 
     // Copy the original data into the blurring device
     KisPainter p(m_filterDevice);
+    src->bitBlt(&p, srcRect.topLeft(), srcRect);
     // bltFixed
     // p.bitBltOldData(neededRect.topLeft(), m_initializationPainter->device(), neededRect); // TODO: Maybe use src instead of getting from initializationPainter
 
