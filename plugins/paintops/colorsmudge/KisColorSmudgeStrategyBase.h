@@ -120,8 +120,7 @@ public:
                                       const KoColor &preparedDullingColor, const quint8 smudgeRateOpacity);
 
     void blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &srcRect,
-                                       const QRect &dstRect, const KoColor &preparedDullingColor,
-                                       const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue);
+                                       const QRect &dstRect, const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue);
 
 protected:
     const KoCompositeOp * m_colorRateOp {nullptr};
@@ -133,8 +132,6 @@ private:
     KisSmudgeOption::Mode m_smudgeMode {KisSmudgeOption::DULLING_MODE};
     
     KisPaintDeviceSP m_filterDevice;
-    KisFilterSP m_filter;
-    KisFilterConfigurationSP m_filterConfiguration;
 };
 
 
