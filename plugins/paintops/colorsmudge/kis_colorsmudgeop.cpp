@@ -213,6 +213,8 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
     const qreal paintThickness = m_paintThicknessOption.apply(info);
     m_strategy->updateMask(m_dabCache, info, shape, scatteredPos, &m_dstDabRect, paintThickness);
 
+    // In blurring mode the current rect is used directly as source
+    const bool useBlurringMode = m_smudgeRateOption.getMode() == KisSmudgeOption::BLURRING_MODE;
     QPointF newCenterPos = QRectF(m_dstDabRect).center();
     /**
      * Save the center of the current dab to know where to read the
@@ -221,11 +223,11 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
      * brush (due to rounding effects), which will result in a
      * really weird quality.
      */
-    QRect srcDabRect = m_dstDabRect.translated((m_lastPaintPos - newCenterPos).toPoint());
+    QRect srcDabRect = useBlurringMode ? m_dstDabRect : m_dstDabRect.translated((m_lastPaintPos - newCenterPos).toPoint());
 
     m_lastPaintPos = newCenterPos;
 
-    if (m_firstRun) {
+    if (m_firstRun && !useBlurringMode) {
         m_firstRun = false;
         return spacingInfo;
     }

@@ -115,6 +115,8 @@ public:
     void blendInBackgroundWithDulling(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &dstRect,
                                       const KoColor &preparedDullingColor, const quint8 smudgeRateOpacity);
 
+    void blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &rect);
+
 protected:
     const KoCompositeOp * m_colorRateOp {nullptr};
     KoColor m_preparedDullingColor;
