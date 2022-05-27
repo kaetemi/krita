@@ -17,7 +17,7 @@ public:
 
     KisColorSmudgeStrategyLightness(KisPainter *painter,
                                     bool smearAlpha,
-                                    bool useDullingMode, 
+                                    KisSmudgeOption::Mode smudgeMode, 
                                     KisPressurePaintThicknessOption::ThicknessMode thicknessMode);
 
     void initializePainting() override;

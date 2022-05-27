@@ -12,8 +12,8 @@
 
 
 KisColorSmudgeStrategyStamp::KisColorSmudgeStrategyStamp(KisPainter *painter, KisImageSP image, bool smearAlpha,
-                                                         bool useDullingMode, bool useOverlayMode)
-        : KisColorSmudgeStrategyWithOverlay(painter, image, smearAlpha, useDullingMode, useOverlayMode)
+                                                         KisSmudgeOption::Mode smudgeMode, bool useOverlayMode)
+        : KisColorSmudgeStrategyWithOverlay(painter, image, smearAlpha, smudgeMode, useOverlayMode)
         , m_origDab(new KisFixedPaintDevice(m_layerOverlayDevice->overlayColorSpace())) // TODO: check compositionSourceColorSpace!
 {
 }

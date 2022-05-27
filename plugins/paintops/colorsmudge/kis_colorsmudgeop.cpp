@@ -90,7 +90,7 @@ KisColorSmudgeOp::KisColorSmudgeOp(const KisPaintOpSettingsSP settings, KisPaint
     KIS_SAFE_ASSERT_RECOVER_NOOP(m_brush->brushApplication() == ALPHAMASK || m_smudgeRateOption.getUseNewEngine());
 
     const bool useSmearAlpha = m_smudgeRateOption.getSmearAlpha();
-    const bool useDullingMode = m_smudgeRateOption.getMode() == KisSmudgeOption::DULLING_MODE;
+    const KisSmudgeOption::Mode smudgeMode = m_smudgeRateOption.getMode();
     const bool useOverlayMode = m_overlayModeOption.isChecked();
 
     m_rotationOption.applyFanCornersInfo(this);
@@ -105,27 +105,27 @@ KisColorSmudgeOp::KisColorSmudgeOp(const KisPaintOpSettingsSP settings, KisPaint
 
         m_strategy.reset(new KisColorSmudgeStrategyLightness(painter,
                                                              useSmearAlpha,
-                                                             useDullingMode,
+                                                             smudgeMode,
                                                              thicknessMode));
     } else if (m_smudgeRateOption.getUseNewEngine() &&
                m_brush->brushApplication() == ALPHAMASK) {
         m_strategy.reset(new KisColorSmudgeStrategyMask(painter,
                                                         image,
                                                         useSmearAlpha,
-                                                        useDullingMode,
+                                                        smudgeMode,
                                                         useOverlayMode));
     } else if (m_brush->brushApplication() == IMAGESTAMP ||
                m_brush->brushApplication() == GRADIENTMAP) {
         m_strategy.reset(new KisColorSmudgeStrategyStamp(painter,
                                                          image,
                                                          useSmearAlpha,
-                                                         useDullingMode,
+                                                         smudgeMode,
                                                          useOverlayMode));
     } else {
         m_strategy.reset(new KisColorSmudgeStrategyMaskLegacy(painter,
                                                               image,
                                                               useSmearAlpha,
-                                                              useDullingMode,
+                                                              smudgeMode,
                                                               useOverlayMode));
         usesNewEngine = false;
     }

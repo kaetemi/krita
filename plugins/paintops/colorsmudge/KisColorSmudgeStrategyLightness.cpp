@@ -19,8 +19,8 @@
 #include <KoBgrColorSpaceTraits.h>
 
 KisColorSmudgeStrategyLightness::KisColorSmudgeStrategyLightness(KisPainter *painter, bool smearAlpha,
-                                                                 bool useDullingMode, KisPressurePaintThicknessOption::ThicknessMode thicknessMode)
-        : KisColorSmudgeStrategyBase(useDullingMode)
+                                                                 KisSmudgeOption::Mode smudgeMode, KisPressurePaintThicknessOption::ThicknessMode thicknessMode)
+        : KisColorSmudgeStrategyBase(smudgeMode)
         , m_maskDab(new KisFixedPaintDevice(KoColorSpaceRegistry::instance()->alpha8()))
         , m_origDab(new KisFixedPaintDevice(KoColorSpaceRegistry::instance()->rgb8()))
         , m_smearAlpha(smearAlpha)

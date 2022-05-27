@@ -26,6 +26,7 @@ KisSmudgeOptionWidget::KisSmudgeOptionWidget()
     mCbSmudgeMode = new QComboBox();
     mCbSmudgeMode->addItem(i18n("Smearing"), KisSmudgeOption::SMEARING_MODE);
     mCbSmudgeMode->addItem("dulling-placeholder" , KisSmudgeOption::DULLING_MODE);
+    mCbSmudgeMode->addItem(i18n("Blurring"), KisSmudgeOption::BLURRING_MODE);
 
     mChkSmearAlpha = new QCheckBox();
     mChkUseNewEngine = new QCheckBox();
@@ -76,7 +77,7 @@ void KisSmudgeOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP
     KisCurveOptionWidget::readOptionSetting(setting);
 
     KisSmudgeOption::Mode mode = static_cast<KisSmudgeOption*>(curveOption())->getMode();
-    mCbSmudgeMode->setCurrentIndex(mode == KisSmudgeOption::SMEARING_MODE ? 0 : 1);
+    mCbSmudgeMode->setCurrentIndex((int)mode);
 
     const bool smearAlpha = static_cast<KisSmudgeOption*>(curveOption())->getSmearAlpha();
     mChkSmearAlpha->setChecked(smearAlpha);

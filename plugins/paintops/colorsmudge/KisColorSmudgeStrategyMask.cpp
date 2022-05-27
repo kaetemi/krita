@@ -10,8 +10,8 @@
 #include "kis_fixed_paint_device.h"
 
 KisColorSmudgeStrategyMask::KisColorSmudgeStrategyMask(KisPainter *painter, KisImageSP image, bool smearAlpha,
-                                                       bool useDullingMode, bool useOverlayMode)
-        : KisColorSmudgeStrategyWithOverlay(painter, image, smearAlpha, useDullingMode, useOverlayMode)
+                                                       KisSmudgeOption::Mode smudgeMode, bool useOverlayMode)
+        : KisColorSmudgeStrategyWithOverlay(painter, image, smearAlpha, smudgeMode, useOverlayMode)
 {
 }
 

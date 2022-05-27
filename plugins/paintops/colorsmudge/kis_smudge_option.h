@@ -22,7 +22,7 @@ class KisSmudgeOption: public KisRateOption
 public:
     KisSmudgeOption();
 
-    enum Mode { SMEARING_MODE, DULLING_MODE };
+    enum Mode { SMEARING_MODE, DULLING_MODE, BLURRING_MODE };
 
     /**
      * Set the opacity of the painter based on the rate
