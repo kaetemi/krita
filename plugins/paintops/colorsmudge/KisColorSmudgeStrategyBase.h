@@ -9,6 +9,7 @@
 
 #include <kis_types.h>
 
+#include "kis_smudge_option.h"
 #include "KisColorSmudgeStrategy.h"
 #include "KisColorSmudgeSource.h"
 
@@ -77,7 +78,7 @@ public:
 
 public:
 
-    KisColorSmudgeStrategyBase(bool useDullingMode);
+    KisColorSmudgeStrategyBase(KisSmudgeOption::Mode smudgeMode);
 
     void initializePaintingImpl(const KoColorSpace *dstColorSpace,
                                 bool smearAlpha,
@@ -120,7 +121,7 @@ protected:
     const KoCompositeOp * m_smearOp {nullptr};
 private:
     KisFixedPaintDeviceSP m_blendDevice;
-    bool m_useDullingMode {true};
+    KisSmudgeOption::Mode m_smudgeMode {KisSmudgeOption::DULLING_MODE};
 };
 
 

@@ -110,8 +110,8 @@ void KisColorSmudgeStrategyBase::DabColoringStrategyStamp::blendInFusedBackgroun
 /*                 KisColorSmudgeStrategyBase                                     */
 /**********************************************************************************/
 
-KisColorSmudgeStrategyBase::KisColorSmudgeStrategyBase(bool useDullingMode)
-        : m_useDullingMode(useDullingMode)
+KisColorSmudgeStrategyBase::KisColorSmudgeStrategyBase(KisSmudgeOption::Mode smudgeMode)
+        : m_smudgeMode(smudgeMode)
 {
 }
 
@@ -189,7 +189,7 @@ KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, 
 {
     const quint8 colorRateOpacity = this->colorRateOpacity(opacity, smudgeRateValue, colorRateValue, maxPossibleSmudgeRateValue);
 
-    if (m_useDullingMode) {
+    if (m_smudgeMode == KisSmudgeOption::DULLING_MODE) {
         this->sampleDullingColor(srcRect,
                                  smudgeRadiusValue,
                                  srcSampleDevice, m_blendDevice,
@@ -208,7 +208,7 @@ KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, 
     const quint8 dullingRateOpacity = this->dullingRateOpacity(opacity, smudgeRateValue);
 
     if (colorRateOpacity > 0 &&
-        m_useDullingMode &&
+        m_smudgeMode == KisSmudgeOption::DULLING_MODE &&
         coloringStrategy.supportsFusedDullingBlending() &&
         ((m_smearOp->id() == COMPOSITE_OVER &&
           m_colorRateOp->id() == COMPOSITE_OVER) ||
@@ -227,7 +227,7 @@ KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, 
                                                                        colorRateOpacity);
 
     } else {
-        if (!m_useDullingMode) {
+        if (m_smudgeMode == KisSmudgeOption::SMEARING_MODE) {
             const quint8 smudgeRateOpacity = this->smearRateOpacity(opacity, smudgeRateValue);
             blendInBackgroundWithSmearing(m_blendDevice, srcSampleDevice,
                                           srcRect, dstRect, smudgeRateOpacity);

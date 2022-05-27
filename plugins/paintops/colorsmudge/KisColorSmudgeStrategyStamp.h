@@ -14,7 +14,7 @@ struct KisColorSmudgeStrategyStamp : public KisColorSmudgeStrategyWithOverlay
     KisColorSmudgeStrategyStamp(KisPainter *painter,
                                 KisImageSP image,
                                 bool smearAlpha,
-                                bool useDullingMode,
+                                KisSmudgeOption::Mode smudgeMode,
                                 bool useOverlayMode);
 
     DabColoringStrategy &coloringStrategy() override;

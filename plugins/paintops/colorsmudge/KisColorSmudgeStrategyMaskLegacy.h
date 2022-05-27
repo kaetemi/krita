@@ -16,7 +16,7 @@ public:
     KisColorSmudgeStrategyMaskLegacy(KisPainter *painter,
                                      KisImageSP image,
                                      bool smearAlpha,
-                                     bool useDullingMode,
+                                     KisSmudgeOption::Mode smudgeMode,
                                      bool useOverlayMode);
 
     void sampleDullingColor(const QRect &srcRect, qreal sampleRadiusValue, KisColorSmudgeSourceSP sourceDevice,

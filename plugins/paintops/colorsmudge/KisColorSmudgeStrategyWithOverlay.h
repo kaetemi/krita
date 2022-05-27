@@ -17,7 +17,7 @@ public:
     KisColorSmudgeStrategyWithOverlay(KisPainter *painter,
                                       KisImageSP image,
                                       bool smearAlpha,
-                                      bool useDullingMode,
+                                      KisSmudgeOption::Mode smudgeMode,
                                       bool useOverlayMode);
 
     virtual ~KisColorSmudgeStrategyWithOverlay();
