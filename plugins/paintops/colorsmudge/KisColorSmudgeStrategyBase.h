@@ -78,7 +78,9 @@ public:
 
 public:
 
-    KisColorSmudgeStrategyBase(KisSmudgeOption::Mode smudgeMode);
+    KisColorSmudgeStrategyBase(KisPainter *painter, KisSmudgeOption::Mode smudgeMode);
+
+    virtual ~KisColorSmudgeStrategyBase();
 
     void initializePaintingImpl(const KoColorSpace *dstColorSpace,
                                 bool smearAlpha,
@@ -115,15 +117,22 @@ public:
     void blendInBackgroundWithDulling(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &dstRect,
                                       const KoColor &preparedDullingColor, const quint8 smudgeRateOpacity);
 
-    void blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &rect);
+    void blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &dstRect,
+                                       const KoColor &preparedDullingColor,
+                                       const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue);
 
 protected:
     const KoCompositeOp * m_colorRateOp {nullptr};
     KoColor m_preparedDullingColor;
     const KoCompositeOp * m_smearOp {nullptr};
+    KisPainter *m_initializationPainter {nullptr};
 private:
     KisFixedPaintDeviceSP m_blendDevice;
     KisSmudgeOption::Mode m_smudgeMode {KisSmudgeOption::DULLING_MODE};
+    
+    KisPaintDeviceSP m_filterDevice;
+    KisFilterSP m_filter;
+    KisFilterConfigurationSP m_filterConfiguration;
 };
 
 

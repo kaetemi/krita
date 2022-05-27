@@ -46,7 +46,6 @@ private:
     bool m_shouldPreserveOriginalDab {true};
     DabColoringStrategyMask m_coloringStrategy;
     bool m_smearAlpha {true};
-    KisPainter *m_initializationPainter {nullptr};
     KisPressurePaintThicknessOption::ThicknessMode m_thicknessMode;
 };
 

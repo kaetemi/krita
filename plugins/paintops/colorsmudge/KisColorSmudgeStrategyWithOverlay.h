@@ -41,7 +41,6 @@ private:
     KisPainter m_finalPainter;
     QScopedPointer<KisPainter> m_overlayPainter;
     bool m_smearAlpha = true;
-    KisPainter *m_initializationPainter = 0;
 };
 
 
