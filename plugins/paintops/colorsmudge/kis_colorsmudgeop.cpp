@@ -201,7 +201,9 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
                               brush->maskWidth(shape, 0, 0, info),
                               brush->maskHeight(shape, 0, 0, info));
 
-    const qreal smudgeRadiusPortion = m_smudgeRadiusOption.isChecked() ? m_smudgeRadiusOption.computeSizeLikeValue(info) : 0.0;
+    const qreal smudgeRadiusPortion = m_smudgeRadiusOption.isChecked()
+        ? m_smudgeRadiusOption.computeSizeLikeValue(info)
+        : m_smudgeRateOption.getMode() == KisSmudgeOption::BLURRING_MODE ? 1.0 : 0.0;
 
     KisSpacingInformation spacingInfo =
             effectiveSpacing(scale, rotation,
@@ -225,7 +227,7 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
      */
     QRect srcDabRect = m_strategy->neededRect(smearEnabled
         ? m_dstDabRect.translated((m_lastPaintPos - newCenterPos).toPoint())
-        : m_dstDabRect);
+        : m_dstDabRect, smudgeRadiusPortion);
 
     m_lastPaintPos = newCenterPos;
 

@@ -140,14 +140,16 @@ void KisColorSmudgeStrategyBase::initializePaintingImpl(const KoColorSpace *dstC
     }
 }
 
-QRect KisColorSmudgeStrategyBase::neededRect(const QRect &srcRect)
+QRect KisColorSmudgeStrategyBase::neededRect(const QRect &srcRect, qreal radiusFactor)
 {
     if (m_smudgeMode == KisSmudgeOption::BLURRING_MODE) {
         int lod = m_initializationPainter->device()->defaultBounds()->currentLevelOfDetail();
-        const qreal radius = 30.0; // TODO
+        const qreal horizRadius = ((qreal)srcRect.width()) * radiusFactor / 2.0; 
+        const qreal vertRadius = ((qreal)srcRect.height()) * radiusFactor / 2.0; 
         KisLodTransformScalar t(lod);
-        const int halfSize = KisGaussianKernel::kernelSizeFromRadius(t.scale(radius)) / 2;
-        return srcRect.adjusted(-halfSize * 2, -halfSize * 2, halfSize * 2, halfSize * 2);
+        const int halfWidth = KisGaussianKernel::kernelSizeFromRadius(t.scale(horizRadius)) / 2;
+        const int halfHeight = KisGaussianKernel::kernelSizeFromRadius(t.scale(vertRadius)) / 2;
+        return srcRect.adjusted(-halfWidth * 2, -halfHeight * 2, halfWidth * 2, halfHeight * 2);
     }
     return srcRect;
 }
@@ -352,10 +354,12 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
     // Blur
     KisTransaction transaction(m_filterDevice);
     KisLodTransformScalar t(m_filterDevice);
-    float radius = t.scale(30.0); // TODO
+    const qreal horizRadius = t.scale(((qreal)dstRect.width()) * smudgeRadiusValue / 2.0);
+    const qreal vertRadius = t.scale(((qreal)dstRect.height()) * smudgeRadiusValue / 2.0);
+    printf("%f %f\n", horizRadius, vertRadius);
     QBitArray channelFlags = QBitArray(m_filterDevice->colorSpace()->channelCount(), true);
     KisGaussianKernel::applyGaussian(m_filterDevice, dstRect,
-                                     radius, radius,
+                                     horizRadius, vertRadius,
                                      channelFlags, nullptr);
     transaction.end();
 

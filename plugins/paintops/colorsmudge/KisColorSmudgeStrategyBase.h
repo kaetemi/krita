@@ -86,7 +86,7 @@ public:
                                 bool smearAlpha,
                                 const QString &colorRateCompositeOpId);
 
-    virtual QRect neededRect(const QRect &srcRect) override;
+    virtual QRect neededRect(const QRect &srcRect, qreal radiusFactor) override;
 
     virtual DabColoringStrategy& coloringStrategy() = 0;
 
