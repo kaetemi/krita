@@ -223,7 +223,7 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
      * brush (due to rounding effects), which will result in a
      * really weird quality.
      */
-    QRect srcDabRect = useBlurringMode ? m_dstDabRect : m_dstDabRect.translated((m_lastPaintPos - newCenterPos).toPoint());
+    QRect srcDabRect = m_strategy->neededRect(useBlurringMode ? m_dstDabRect : m_dstDabRect.translated((m_lastPaintPos - newCenterPos).toPoint()));
 
     m_lastPaintPos = newCenterPos;
 

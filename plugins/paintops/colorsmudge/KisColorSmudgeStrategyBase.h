@@ -86,6 +86,8 @@ public:
                                 bool smearAlpha,
                                 const QString &colorRateCompositeOpId);
 
+    virtual QRect neededRect(const QRect &srcRect) override;
+
     virtual DabColoringStrategy& coloringStrategy() = 0;
 
     const KoColorSpace* preciseColorSpace() const override;
@@ -117,8 +119,8 @@ public:
     void blendInBackgroundWithDulling(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &dstRect,
                                       const KoColor &preparedDullingColor, const quint8 smudgeRateOpacity);
 
-    void blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &dstRect,
-                                       const KoColor &preparedDullingColor,
+    void blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &srcRect,
+                                       const QRect &dstRect, const KoColor &preparedDullingColor,
                                        const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue);
 
 protected:
