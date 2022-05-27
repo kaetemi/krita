@@ -136,7 +136,7 @@ void KisColorSmudgeStrategyBase::initializePaintingImpl(const KoColorSpace *dstC
     m_preparedDullingColor.convertTo(dstColorSpace);
 
     if (m_smudgeMode == KisSmudgeOption::BLURRING_MODE) {
-        m_filterDevice = m_initializationPainter->device()->createCompositionSourceDevice();
+        m_filterDevice = new KisPaintDevice(*m_initializationPainter->device());
     }
 }
 
@@ -257,19 +257,19 @@ KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, 
                                                                        colorRateOpacity);
 
     } else {
-        if (m_smudgeMode == KisSmudgeOption::SMEARING_MODE) {
-            const quint8 smudgeRateOpacity = this->smearRateOpacity(opacity, smudgeRateValue);
-            blendInBackgroundWithSmearing(m_blendDevice, srcSampleDevice,
-                                          srcRect, dstRect, smudgeRateOpacity);
-        } else if (m_smudgeMode == KisSmudgeOption::DULLING_MODE) {
+        if (m_smudgeMode == KisSmudgeOption::DULLING_MODE) {
             blendInBackgroundWithDulling(m_blendDevice, srcSampleDevice,
                                          dstRect,
                                          m_preparedDullingColor, dullingRateOpacity);
-        } else {
+        } else if (m_smudgeMode == KisSmudgeOption::BLURRING_MODE) {
             const quint8 smudgeRateOpacity = this->smearRateOpacity(opacity, smudgeRateValue);
             blendInBackgroundWithBlurring(m_blendDevice, srcSampleDevice,
                                           srcRect, dstRect,
                                           smudgeRateOpacity, smudgeRadiusValue);
+        } else {
+            const quint8 smudgeRateOpacity = this->smearRateOpacity(opacity, smudgeRateValue);
+            blendInBackgroundWithSmearing(m_blendDevice, srcSampleDevice,
+                                          srcRect, dstRect, smudgeRateOpacity);
         }
 
         if (colorRateOpacity > 0) {
