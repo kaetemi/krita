@@ -43,6 +43,7 @@ QList<KisUniformPaintOpPropertySP> KisColorSmudgeOpSettings::uniformProperties(K
             QList<QString> modes;
             modes << i18n("Smearing");
             modes << i18n("Dulling");
+            modes << i18n("Blurring");
 
             prop->setItems(modes);
 
