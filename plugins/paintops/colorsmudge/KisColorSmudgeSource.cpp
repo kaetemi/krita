@@ -7,6 +7,7 @@
 #include "KisColorSmudgeSource.h"
 
 #include "kis_paint_device.h"
+#include "kis_painter.h"
 #include "kis_image.h"
 #include "KisOverlayPaintDeviceWrapper.h"
 
@@ -30,6 +31,10 @@ void KisColorSmudgeSourcePaintDevice::readRects(const QVector<QRect> &rects) {
 
 void KisColorSmudgeSourcePaintDevice::readBytes(quint8 *dstPtr, const QRect &rect) {
     m_overlayDevice.overlay(m_overlayIndex)->readBytes(dstPtr, rect);
+}
+
+void KisColorSmudgeSourcePaintDevice::bitBlt(KisPainter *dst, const QPoint &dstPos, const QRect &srcRect) {
+    dst->bitBlt(dstPos, m_overlayDevice.overlay(m_overlayIndex), srcRect);
 }
 
 const KoColorSpace *KisColorSmudgeSourcePaintDevice::colorSpace() const {
@@ -56,6 +61,10 @@ void KisColorSmudgeSourceImage::readRects(const QVector<QRect> &rects)
 void KisColorSmudgeSourceImage::readBytes(quint8 *dstPtr, const QRect &rect)
 {
     m_overlayDevice.overlay()->readBytes(dstPtr, rect);
+}
+
+void KisColorSmudgeSourceImage::bitBlt(KisPainter *dst, const QPoint &dstPos, const QRect &srcRect) {
+    dst->bitBlt(dstPos, m_overlayDevice.overlay(), srcRect);
 }
 
 const KoColorSpace *KisColorSmudgeSourceImage::colorSpace() const {

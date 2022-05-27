@@ -13,6 +13,7 @@
 class KoColorSpace;
 class QRect;
 class KisOverlayPaintDeviceWrapper;
+class KisPainter;
 
 class KisColorSmudgeSource {
 public:
@@ -20,6 +21,7 @@ public:
     void readRect(const QRect &rect);
     virtual void readRects(const QVector<QRect> &rects) = 0;
     virtual void readBytes(quint8 *dstPtr, const QRect &rect) = 0;
+    virtual void bitBlt(KisPainter *dst, const QPoint &dstPos, const QRect &srcRect) = 0;
     virtual const KoColorSpace* colorSpace() const = 0;
 };
 
@@ -32,6 +34,7 @@ struct KisColorSmudgeSourcePaintDevice : public KisColorSmudgeSource
     void readRects(const QVector<QRect> &rects) override;
 
     void readBytes(quint8 *dstPtr, const QRect &rect) override;
+    void bitBlt(KisPainter *dst, const QPoint &dstPos, const QRect &srcRect) override;
     const KoColorSpace* colorSpace() const override;
 
 private:
@@ -47,6 +50,7 @@ struct KisColorSmudgeSourceImage : public KisColorSmudgeSource
     void readRects(const QVector<QRect> &rects) override;
 
     void readBytes(quint8 *dstPtr, const QRect &rect) override;
+    void bitBlt(KisPainter *dst, const QPoint &dstPos, const QRect &srcRect) override;
     const KoColorSpace* colorSpace() const override;
 
 private:

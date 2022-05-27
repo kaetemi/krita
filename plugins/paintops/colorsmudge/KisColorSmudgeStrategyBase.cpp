@@ -349,10 +349,22 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
     // src->readBytes(dst->data(), dstRect);
 
     // Copy the original data into the blurring device
-    // KisPainter p(m_filterDevice);
-    // p.bitBltOldData(neededRect.topLeft(), src, neededRect);
+    KisPainter p(m_filterDevice);
+    // bltFixed
+    // p.bitBltOldData(neededRect.topLeft(), m_initializationPainter->device(), neededRect); // TODO: Maybe use src instead of getting from initializationPainter
 
-	// 
+    // Blur
+    KisTransaction transaction(m_filterDevice);
+    m_filter->process(m_filterDevice, dstRect, m_filterConfiguration, 0);
+    transaction.end();
+
+    // Write blur directly to dst
+    p.bitBltWithFixedSelection(dstRect.x(), dstRect.y(),
+                               m_filterDevice, dst,
+                               0, 0,
+                               dstRect.x(), dstRect.y(),
+                               dstRect.width(), dstRect.height());
+
     // KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
     // tempDevice.setRect(neededRect);
     // tempDevice.lazyGrowBufferWithoutInitialization();
