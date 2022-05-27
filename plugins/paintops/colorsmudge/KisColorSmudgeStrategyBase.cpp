@@ -340,9 +340,9 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
                                                                const QRect &srcRect, const QRect &dstRect,
                                                                const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue)
 {
-    const bool opaqueBlend = m_smearOp->id() == COMPOSITE_COPY && smudgeRateOpacity == OPACITY_OPAQUE_U8;
+    const bool opaqueCopy = m_smearOp->id() == COMPOSITE_COPY && smudgeRateOpacity == OPACITY_OPAQUE_U8;
     
-    if (!opaqueBlend) {
+    if (!opaqueCopy) {
         // Copy the original data to the destination
         src->readBytes(dst->data(), dstRect);
     }
@@ -363,7 +363,7 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
                                      channelFlags, nullptr);
     transaction.end();
 
-    if (opaqueBlend) {
+    if (opaqueCopy) {
         // Write blur directly to dst
         m_filterDevice->readBytes(dst->data(), dstRect);
         m_filterDevice->clear();
