@@ -13,6 +13,11 @@
 #include <filter/kis_filter_configuration.h>
 #include <KisGlobalResourcesInterface.h>
 
+#include <kis_convolution_kernel.h>
+#include <kis_convolution_painter.h>
+#include <kis_gaussian_kernel.h>
+#include <kis_lod_transform.h>
+
 #include "kis_painter.h"
 #include "kis_fixed_paint_device.h"
 #include "kis_paint_device.h"
@@ -152,6 +157,8 @@ void KisColorSmudgeStrategyBase::initializePaintingImpl(const KoColorSpace *dstC
 QRect KisColorSmudgeStrategyBase::neededRect(const QRect &srcRect)
 {
     if (m_filter) {
+        m_filterConfiguration->setProperty("horizRadius", 30.0); // TODO
+        m_filterConfiguration->setProperty("vertRadius", 30.0); // TODO
         return m_filter->neededRect(srcRect, m_filterConfiguration, m_initializationPainter->device()->defaultBounds()->currentLevelOfDetail());
     }
     return srcRect;
@@ -349,9 +356,6 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
     // TODO
     // Radius is clipped to 1.0 (100%)
     // Radius above 1.0 will blend in the dulling color on top of blurring
-    m_filterConfiguration->setProperty("horizRadius", 30.0); // TODO
-    m_filterConfiguration->setProperty("vertRadius", 30.0); // TODO
-    // QRect neededRect = m_filter->neededRect(dstRect, m_filterConfiguration, m_initializationPainter->device()->defaultBounds()->currentLevelOfDetail());
 
     // Copy the original data to the destination
     // src->readBytes(dst->data(), dstRect);
@@ -363,16 +367,29 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
     // p.bitBltOldData(neededRect.topLeft(), m_initializationPainter->device(), neededRect); // TODO: Maybe use src instead of getting from initializationPainter
 
     // Blur
+    // m_filterConfiguration->setProperty("horizRadius", 30.0); // TODO
+    // m_filterConfiguration->setProperty("vertRadius", 30.0); // TODO
+
     KisTransaction transaction(m_filterDevice);
-    m_filter->process(m_filterDevice, dstRect, m_filterConfiguration, 0);
+    // m_filter->process(m_filterDevice, dstRect, m_filterConfiguration, 0);
+
+    KisLodTransformScalar t(m_filterDevice);
+    float radius = t.scale(30.0); // TODO
+    QBitArray channelFlags = QBitArray(m_filterDevice->colorSpace()->channelCount(), true);
+
+    KisGaussianKernel::applyGaussian(m_filterDevice, dstRect,
+                                     radius, radius,
+                                     channelFlags, nullptr);
+
     transaction.end();
 
     // Write blur directly to dst
-    p.bitBltWithFixedSelection(dstRect.x(), dstRect.y(),
-                               m_filterDevice, dst,
-                               0, 0,
-                               dstRect.x(), dstRect.y(),
-                               dstRect.width(), dstRect.height());
+    m_filterDevice->readBytes(dst->data(), dstRect);
+    // p.bitBltWithFixedSelection(dstRect.x(), dstRect.y(),
+    //                            m_filterDevice, dst,
+    //                            0, 0,
+    //                            dstRect.x(), dstRect.y(),
+    //                            dstRect.width(), dstRect.height());
 
     // KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
     // tempDevice.setRect(neededRect);
