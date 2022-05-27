@@ -20,11 +20,10 @@
 
 KisColorSmudgeStrategyLightness::KisColorSmudgeStrategyLightness(KisPainter *painter, bool smearAlpha,
                                                                  KisSmudgeOption::Mode smudgeMode, KisPressurePaintThicknessOption::ThicknessMode thicknessMode)
-        : KisColorSmudgeStrategyBase(smudgeMode)
+        : KisColorSmudgeStrategyBase(painter, smudgeMode)
         , m_maskDab(new KisFixedPaintDevice(KoColorSpaceRegistry::instance()->alpha8()))
         , m_origDab(new KisFixedPaintDevice(KoColorSpaceRegistry::instance()->rgb8()))
         , m_smearAlpha(smearAlpha)
-        , m_initializationPainter(painter)
         , m_thicknessMode(thicknessMode)
 {
     KIS_SAFE_ASSERT_RECOVER(thicknessMode == KisPressurePaintThicknessOption::OVERLAY ||

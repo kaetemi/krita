@@ -7,9 +7,16 @@
 
 #include <KoCompositeOpRegistry.h>
 #include "KisColorSmudgeStrategyBase.h"
+
+#include <filter/kis_filter_registry.h>
+#include <filter/kis_filter.h>
+#include <filter/kis_filter_configuration.h>
+#include <KisGlobalResourcesInterface.h>
+
 #include "kis_painter.h"
 #include "kis_fixed_paint_device.h"
 #include "kis_paint_device.h"
+#include <kis_transaction.h>
 #include "KisColorSmudgeSampleUtils.h"
 
 /**********************************************************************************/
@@ -110,8 +117,13 @@ void KisColorSmudgeStrategyBase::DabColoringStrategyStamp::blendInFusedBackgroun
 /*                 KisColorSmudgeStrategyBase                                     */
 /**********************************************************************************/
 
-KisColorSmudgeStrategyBase::KisColorSmudgeStrategyBase(KisSmudgeOption::Mode smudgeMode)
-        : m_smudgeMode(smudgeMode)
+KisColorSmudgeStrategyBase::KisColorSmudgeStrategyBase(KisPainter *painter, KisSmudgeOption::Mode smudgeMode)
+        : m_initializationPainter(painter)
+        , m_smudgeMode(smudgeMode)
+{
+}
+
+KisColorSmudgeStrategyBase::~KisColorSmudgeStrategyBase()
 {
 }
 
@@ -122,6 +134,19 @@ void KisColorSmudgeStrategyBase::initializePaintingImpl(const KoColorSpace *dstC
     m_smearOp = dstColorSpace->compositeOp(smearCompositeOp(smearAlpha));
     m_colorRateOp = dstColorSpace->compositeOp(colorRateCompositeOpId);
     m_preparedDullingColor.convertTo(dstColorSpace);
+
+    if (m_smudgeMode == KisSmudgeOption::BLURRING_MODE) {
+        m_filter = KisFilterRegistry::instance()->get("gaussian blur");
+        if (m_filter) {
+            m_filterDevice = m_initializationPainter->device()->createCompositionSourceDevice();
+            m_filterConfiguration = new KisFilterConfiguration("gaussian blur", 1, KisGlobalResourcesInterface::instance());
+            m_filterConfiguration->setProperty("horizRadius", 5);
+            m_filterConfiguration->setProperty("vertRadius", 5);
+            m_filterConfiguration->setProperty("lockAspect", true);
+        } else {
+            m_smudgeMode = KisSmudgeOption::DULLING_MODE;
+        }
+    }
 }
 
 const KoColorSpace *KisColorSmudgeStrategyBase::preciseColorSpace() const
@@ -189,9 +214,10 @@ KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, 
 {
     const quint8 colorRateOpacity = this->colorRateOpacity(opacity, smudgeRateValue, colorRateValue, maxPossibleSmudgeRateValue);
 
-    if (m_smudgeMode == KisSmudgeOption::DULLING_MODE) {
+    if (m_smudgeMode == KisSmudgeOption::DULLING_MODE ||
+        (m_smudgeMode == KisSmudgeOption::BLURRING_MODE && smudgeRadiusValue > 1.0)) {
         this->sampleDullingColor(srcRect,
-                                 smudgeRadiusValue,
+                                 m_smudgeMode == KisSmudgeOption::BLURRING_MODE ? 1.0 : smudgeRadiusValue,
                                  srcSampleDevice, m_blendDevice,
                                  maskDab, &m_preparedDullingColor);
 
@@ -236,8 +262,11 @@ KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, 
                                          dstRect,
                                          m_preparedDullingColor, dullingRateOpacity);
         } else {
+            const quint8 smudgeRateOpacity = this->smearRateOpacity(opacity, smudgeRateValue);
             blendInBackgroundWithBlurring(m_blendDevice, srcSampleDevice,
-                                          dstRect);
+                                          dstRect,
+                                          m_preparedDullingColor,
+                                          smudgeRateOpacity, smudgeRadiusValue);
         }
 
         if (colorRateOpacity > 0) {
@@ -305,7 +334,41 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithDulling(KisFixedPaintDevic
 }
 
 void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src,
-                                                               const QRect &rect)
+                                                               const QRect &dstRect,
+                                                               const KoColor &preparedDullingColor,
+                                                               const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue)
 {
     // TODO
+    // Radius is clipped to 1.0 (100%)
+    // Radius above 1.0 will blend in the dulling color on top of blurring
+    m_filterConfiguration->setProperty("horizRadius", 30.0); // TODO
+    m_filterConfiguration->setProperty("vertRadius", 30.0); // TODO
+    QRect neededRect = m_filter->neededRect(dstRect, m_filterConfiguration, m_initializationPainter->device()->defaultBounds()->currentLevelOfDetail());
+
+    // Copy the original data to the destination
+    // src->readBytes(dst->data(), dstRect);
+
+    // Copy the original data into the blurring device
+    // KisPainter p(m_filterDevice);
+    // p.bitBltOldData(neededRect.topLeft(), src, neededRect);
+
+	// 
+    // KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
+    // tempDevice.setRect(neededRect);
+    // tempDevice.lazyGrowBufferWithoutInitialization();
+	// 
+    // // Copy the original data into the blurring device
+    // src->readBytes(tempDevice.data(), neededRect);
+	// 
+    // // Apply the blur
+    // KisTransaction transaction(tempDevice);
+    // m_filter->process(tempDevice, dstRect, m_filterConfiguration, 0);
+    // transaction.end();
+
+    // Blend the blur with the destination
+    // m_smearOp->composite(dst->data(), dstRect.width() * dst->pixelSize(),
+    //                      tempDevice.data(), dstRect.width() * tempDevice.pixelSize(), // stride should be random non-zero
+    //                      0, 0,
+    //                      1, dstRect.width() * dstRect.height(),
+    //                      smudgeRateOpacity);
 }

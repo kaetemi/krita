@@ -17,10 +17,9 @@
 KisColorSmudgeStrategyWithOverlay::KisColorSmudgeStrategyWithOverlay(KisPainter *painter, KisImageSP image,
                                                                      bool smearAlpha, KisSmudgeOption::Mode smudgeMode,
                                                                      bool useOverlayMode)
-        : KisColorSmudgeStrategyBase(smudgeMode)
+        : KisColorSmudgeStrategyBase(painter, smudgeMode)
         , m_maskDab(new KisFixedPaintDevice(KoColorSpaceRegistry::instance()->alpha8()))
         , m_smearAlpha(smearAlpha)
-        , m_initializationPainter(painter)
 {
     if (useOverlayMode && image) {
         m_imageOverlayDevice.reset(new KisOverlayPaintDeviceWrapper(image->projection(), 1, KisOverlayPaintDeviceWrapper::PreciseMode));
