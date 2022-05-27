@@ -349,6 +349,7 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
 
     // Copy the original data into the blurring device
     KisPainter p(m_filterDevice);
+    p.setCompositeOpId(COMPOSITE_COPY);
     src->bitBlt(&p, srcRect.topLeft(), srcRect);
 
     // Blur
@@ -356,7 +357,6 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
     KisLodTransformScalar t(m_filterDevice);
     const qreal horizRadius = t.scale(((qreal)dstRect.width()) * smudgeRadiusValue / 2.0);
     const qreal vertRadius = t.scale(((qreal)dstRect.height()) * smudgeRadiusValue / 2.0);
-    printf("%f %f\n", horizRadius, vertRadius);
     QBitArray channelFlags = QBitArray(m_filterDevice->colorSpace()->channelCount(), true);
     KisGaussianKernel::applyGaussian(m_filterDevice, dstRect,
                                      horizRadius, vertRadius,
@@ -366,12 +366,14 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
     if (opaqueBlend) {
         // Write blur directly to dst
         m_filterDevice->readBytes(dst->data(), dstRect);
+        m_filterDevice->clear();
     } else {
         // Write blur to temp device
         KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
         tempDevice.setRect(dstRect);
         tempDevice.lazyGrowBufferWithoutInitialization();
         m_filterDevice->readBytes(tempDevice.data(), dstRect);
+        m_filterDevice->clear();
 
         // Blend the blur with the destination
         m_smearOp->composite(dst->data(), dstRect.width() * dst->pixelSize(),
