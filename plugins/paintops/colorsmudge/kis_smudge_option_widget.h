@@ -32,11 +32,13 @@ public:
 
 private Q_SLOTS:
     void slotCurrentIndexChanged(int index);
+    void slotSmearOffsetChanged(bool value);
     void slotSmearAlphaChanged(bool value);
     void slotUseNewEngineChanged(bool value);
 
 private:
     QComboBox* mCbSmudgeMode;
+    QCheckBox *mChkSmearOffset;
     QCheckBox *mChkSmearAlpha;
     QCheckBox* mChkUseNewEngine;
 };
