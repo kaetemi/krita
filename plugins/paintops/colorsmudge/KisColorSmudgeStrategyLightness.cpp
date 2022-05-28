@@ -133,7 +133,8 @@ void KisColorSmudgeStrategyLightness::updateMask(KisDabCache *dabCache, const Ki
 }
 
 QVector<QRect>
-KisColorSmudgeStrategyLightness::paintDab(const QRect &srcRect, const QRect &dstRect, const KoColor &currentPaintColor,
+KisColorSmudgeStrategyLightness::paintDab(const QRect &neededRect, const QRect &srcRect, const QRect &dstRect,
+                                          const KoColor &currentPaintColor,
                                           qreal opacity, qreal colorRateValue, qreal smudgeRateValue,
                                           qreal maxPossibleSmudgeRateValue, qreal paintThicknessValue,
                                           qreal smudgeRadiusValue)
@@ -144,14 +145,14 @@ KisColorSmudgeStrategyLightness::paintDab(const QRect &srcRect, const QRect &dst
 
     QVector<QRect> readRects;
     readRects << mirroredRects;
-    readRects << srcRect;
+    readRects << neededRect;
     m_sourceWrapperDevice->readRects(readRects);
 
 
     blendBrush({ &m_finalPainter },
         m_sourceWrapperDevice,
         m_maskDab, m_shouldPreserveOriginalDab,
-        srcRect, dstRect,
+        neededRect, srcRect, dstRect,
         currentPaintColor,
         opacity,
         smudgeRateValue,

@@ -213,8 +213,8 @@ void KisColorSmudgeStrategyBase::sampleDullingColor(const QRect &srcRect, qreal 
 
 void
 KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, KisColorSmudgeSourceSP srcSampleDevice,
-                                       KisFixedPaintDeviceSP maskDab, bool preserveMaskDab, const QRect &srcRect,
-                                       const QRect &dstRect, const KoColor &currentPaintColor, qreal opacity,
+                                       KisFixedPaintDeviceSP maskDab, bool preserveMaskDab, const QRect &neededRect,
+                                       const QRect &srcRect, const QRect &dstRect, const KoColor &currentPaintColor, qreal opacity,
                                        qreal smudgeRateValue, qreal maxPossibleSmudgeRateValue, qreal colorRateValue,
                                        qreal smudgeRadiusValue)
 {
@@ -265,7 +265,7 @@ KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, 
         } else if (m_smudgeMode == KisSmudgeOption::BLURRING_MODE) {
             const quint8 smudgeRateOpacity = this->smearRateOpacity(opacity, smudgeRateValue);
             blendInBackgroundWithBlurring(m_blendDevice, srcSampleDevice,
-                                          srcRect, dstRect,
+                                          neededRect, srcRect, dstRect,
                                           smudgeRateOpacity, smudgeRadiusValue);
         } else {
             const quint8 smudgeRateOpacity = this->smearRateOpacity(opacity, smudgeRateValue);
@@ -338,7 +338,7 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithDulling(KisFixedPaintDevic
 }
 
 void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src,
-                                                               const QRect &srcRect, const QRect &dstRect,
+                                                               const QRect &neededRect, const QRect &srcRect, const QRect &dstRect,
                                                                const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue)
 {
     const bool opaqueCopy = m_smearOp->id() == COMPOSITE_COPY && smudgeRateOpacity == OPACITY_OPAQUE_U8;
@@ -351,29 +351,29 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
     // Copy the original data into the blurring device
     KisPainter p(m_filterDevice);
     p.setCompositeOpId(COMPOSITE_COPY);
-    src->bitBlt(&p, srcRect.topLeft(), srcRect);
+    src->bitBlt(&p, neededRect.topLeft(), neededRect);
 
     // Blur
     KisTransaction transaction(m_filterDevice);
     KisLodTransformScalar t(m_filterDevice);
-    const qreal horizRadius = t.scale(((qreal)dstRect.width()) * smudgeRadiusValue / 2.0);
-    const qreal vertRadius = t.scale(((qreal)dstRect.height()) * smudgeRadiusValue / 2.0);
+    const qreal horizRadius = t.scale(((qreal)srcRect.width()) * smudgeRadiusValue / 2.0);
+    const qreal vertRadius = t.scale(((qreal)srcRect.height()) * smudgeRadiusValue / 2.0);
     QBitArray channelFlags = QBitArray(m_filterDevice->colorSpace()->channelCount(), true);
-    KisGaussianKernel::applyGaussian(m_filterDevice, dstRect,
+    KisGaussianKernel::applyGaussian(m_filterDevice, srcRect,
                                      horizRadius, vertRadius,
                                      channelFlags, nullptr);
     transaction.end();
 
     if (opaqueCopy) {
         // Write blur directly to dst
-        m_filterDevice->readBytes(dst->data(), dstRect);
+        m_filterDevice->readBytes(dst->data(), srcRect);
         m_filterDevice->clear();
     } else {
         // Write blur to temp device
         KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
-        tempDevice.setRect(dstRect);
+        tempDevice.setRect(srcRect);
         tempDevice.lazyGrowBufferWithoutInitialization();
-        m_filterDevice->readBytes(tempDevice.data(), dstRect);
+        m_filterDevice->readBytes(tempDevice.data(), srcRect);
         m_filterDevice->clear();
 
         // Blend the blur with the destination

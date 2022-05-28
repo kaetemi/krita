@@ -30,7 +30,8 @@ public:
                     const QPointF &cursorPoint,
                     QRect *dstDabRect, qreal lightnessStrength) override;
 
-    QVector<QRect> paintDab(const QRect &srcRect, const QRect &dstRect, const KoColor &currentPaintColor, qreal opacity,
+    QVector<QRect> paintDab(const QRect &neededRect, const QRect &srcRect, const QRect &dstRect,
+                            const KoColor &currentPaintColor, qreal opacity,
                             qreal colorRateValue, qreal smudgeRateValue, qreal maxPossibleSmudgeRateValue,
                             qreal lightnessStrengthValue, qreal smudgeRadiusValue) override;
 private:
