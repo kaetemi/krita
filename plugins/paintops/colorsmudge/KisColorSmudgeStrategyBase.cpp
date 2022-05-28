@@ -136,7 +136,8 @@ void KisColorSmudgeStrategyBase::initializePaintingImpl(const KoColorSpace *dstC
     m_preparedDullingColor.convertTo(dstColorSpace);
 
     if (m_smudgeMode == KisSmudgeOption::BLURRING_MODE) {
-        m_filterDevice = new KisPaintDevice(*m_initializationPainter->device());
+        m_filterDevice = new KisPaintDevice(dstColorSpace);
+        m_filterDevice->setDefaultBounds(m_initializationPainter->device()->defaultBounds());
     }
 }
 
