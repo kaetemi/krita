@@ -109,7 +109,8 @@ public:
                                     KoColor *resultColor);
 
     void blendBrush(const QVector<KisPainter *> dstPainters, KisColorSmudgeSourceSP srcSampleDevice,
-                    KisFixedPaintDeviceSP maskDab, bool preserveMaskDab, const QRect &srcRect, const QRect &dstRect,
+                    KisFixedPaintDeviceSP maskDab, bool preserveMaskDab,
+                    const QRect &neededRect, const QRect &srcRect, const QRect &dstRect,
                     const KoColor &currentPaintColor, qreal opacity, qreal smudgeRateValue,
                     qreal maxPossibleSmudgeRateValue, qreal colorRateValue, qreal smudgeRadiusValue);
 
@@ -119,8 +120,9 @@ public:
     void blendInBackgroundWithDulling(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &dstRect,
                                       const KoColor &preparedDullingColor, const quint8 smudgeRateOpacity);
 
-    void blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &srcRect,
-                                       const QRect &dstRect, const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue);
+    void blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &neededRect,
+                                       const QRect &srcRect, const QRect &dstRect,
+                                       const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue);
 
 protected:
     const KoCompositeOp * m_colorRateOp {nullptr};

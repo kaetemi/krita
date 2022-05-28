@@ -28,7 +28,8 @@ public:
                             QRect *dstDabRect,
                             qreal lightnessStrength) = 0;
 
-    virtual QVector<QRect> paintDab(const QRect &srcRect, const QRect &dstRect,
+    virtual QVector<QRect> paintDab(const QRect &neededRect,
+                                    const QRect &srcRect, const QRect &dstRect,
                                     const KoColor &currentPaintColor,
                                     qreal opacity,
                                     qreal colorRateValue,

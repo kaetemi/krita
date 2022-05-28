@@ -224,9 +224,10 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
      * brush (due to rounding effects), which will result in a
      * really weird quality.
      */
-    QRect srcDabRect = m_strategy->neededRect(useSmearOffset
+    QRect srcDabRect = useSmearOffset
         ? m_dstDabRect.translated((m_lastPaintPos - newCenterPos).toPoint())
-        : m_dstDabRect, smudgeRadiusPortion);
+        : m_dstDabRect;
+    QRect neededRect = m_strategy->neededRect(srcDabRect, smudgeRadiusPortion);
 
     m_lastPaintPos = newCenterPos;
 
@@ -251,7 +252,7 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
     }
 
     const QVector<QRect> dirtyRects =
-            m_strategy->paintDab(srcDabRect, m_dstDabRect,
+            m_strategy->paintDab(neededRect, srcDabRect, m_dstDabRect,
                                  paintColor,
                                  fpOpacity, colorRate,
                                  smudgeRate,
