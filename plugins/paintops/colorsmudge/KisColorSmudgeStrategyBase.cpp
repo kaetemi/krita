@@ -13,6 +13,7 @@
 #include <kis_gaussian_kernel.h>
 #include <kis_lod_transform.h>
 #include <kis_transaction.h>
+#include <kis_random_sub_accessor.h>
 
 #include "kis_painter.h"
 #include "kis_fixed_paint_device.h"
@@ -138,6 +139,7 @@ void KisColorSmudgeStrategyBase::initializePaintingImpl(const KoColorSpace *dstC
     if (m_smudgeMode == KisSmudgeOption::BLURRING_MODE) {
         m_filterDevice = new KisPaintDevice(dstColorSpace);
         m_filterDevice->setDefaultBounds(m_initializationPainter->device()->defaultBounds());
+        m_filterAccessor = m_filterDevice->createRandomSubAccessor();
     }
 }
 
@@ -145,12 +147,20 @@ QRect KisColorSmudgeStrategyBase::neededRect(const QRect &srcRect, qreal radiusF
 {
     if (m_smudgeMode == KisSmudgeOption::BLURRING_MODE) {
         int lod = m_initializationPainter->device()->defaultBounds()->currentLevelOfDetail();
-        const qreal horizRadius = ((qreal)srcRect.width()) * radiusFactor / 2.0; 
-        const qreal vertRadius = ((qreal)srcRect.height()) * radiusFactor / 2.0; 
+        
+        // Only sample from half the source rectangle
+        QRect halfRect = srcRect.adjusted(srcRect.width() / 4, srcRect.height() / 4,
+                                          -srcRect.width() / 4, -srcRect.height() / 4);
+        const qreal horizRadius = ((qreal)srcRect.width()) * radiusFactor / 8.0; 
+        const qreal vertRadius = ((qreal)srcRect.height()) * radiusFactor / 8.0; 
+        
+        // Calculate gaussian kernel size
         KisLodTransformScalar t(lod);
         const int halfWidth = KisGaussianKernel::kernelSizeFromRadius(t.scale(horizRadius)) / 2;
         const int halfHeight = KisGaussianKernel::kernelSizeFromRadius(t.scale(vertRadius)) / 2;
-        return srcRect.adjusted(-halfWidth * 2, -halfHeight * 2, halfWidth * 2, halfHeight * 2);
+        
+        // Extend the reduced source rectangle by the kernel size with one extra pixel for subsampling
+        return halfRect.adjusted(-halfWidth * 2 - 1, -halfHeight * 2 - 1, halfWidth * 2 + 1, halfHeight * 2 + 1);
     }
     return srcRect;
 }
@@ -356,25 +366,54 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
     // Blur
     KisTransaction transaction(m_filterDevice);
     KisLodTransformScalar t(m_filterDevice);
-    const qreal horizRadius = t.scale(((qreal)srcRect.width()) * smudgeRadiusValue / 2.0);
-    const qreal vertRadius = t.scale(((qreal)srcRect.height()) * smudgeRadiusValue / 2.0);
+    QRect halfRect = srcRect.adjusted(srcRect.width() / 4, srcRect.height() / 4,
+                                      -srcRect.width() / 4, -srcRect.height() / 4);
+    const qreal horizRadius = t.scale(((qreal)srcRect.width()) * smudgeRadiusValue / 8.0);
+    const qreal vertRadius = t.scale(((qreal)srcRect.height()) * smudgeRadiusValue / 8.0);
     QBitArray channelFlags = QBitArray(m_filterDevice->colorSpace()->channelCount(), true);
-    KisGaussianKernel::applyGaussian(m_filterDevice, srcRect,
-                                     horizRadius, vertRadius,
-                                     channelFlags, nullptr);
+    //KisGaussianKernel::applyGaussian(m_filterDevice, halfRect.adjusted(-1, -1, 1, 1),
+    //                                 horizRadius, vertRadius,
+    //                                 channelFlags, nullptr);
     transaction.end();
+
+    // Scale 2x
+    KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
+    KisFixedPaintDevice &scaleDst = opaqueCopy ? *dst : tempDevice;
+    if (!opaqueCopy) {
+        tempDevice.setRect(dstRect);
+        tempDevice.lazyGrowBufferWithoutInitialization();
+    }
+    KisRandomSubAccessorSP acc = m_filterDevice->createRandomSubAccessor();
+    qreal horizMid = (qreal)dstRect.width() * 0.5;
+    qreal vertMid = (qreal)dstRect.height() * 0.5;
+    //qreal horizOffset = srcRect.x() - dstRect.x();
+    //qreal vertOffset = srcRect.y() - dstRect.y();
+    for (int y = 0; y < dstRect.height(); ++y) {
+        qreal yOffset = (qreal)y - vertMid;
+        qreal yOffHalf = yOffset * 0.5;
+        qreal ySrc = (qreal)srcRect.y() + yOffHalf + vertMid;
+        for (int x = 0; x < dstRect.width(); ++x) {
+            qreal xOffset = (qreal)x - horizMid;
+            qreal xOffHalf = xOffset * 0.5;
+            qreal xSrc = (qreal)srcRect.x() + xOffHalf + horizMid;
+            acc->moveTo(xSrc, ySrc);
+            //printf("%f, %f, %i, %i\n", xSrc, ySrc, x + dstRect.x(), y + dstRect.y());
+            acc->sampledRawData(scaleDst.data() + (dstRect.width() * y + x) * scaleDst.pixelSize());
+        }
+    }
+    m_filterDevice->clear();
 
     if (opaqueCopy) {
         // Write blur directly to dst
-        m_filterDevice->readBytes(dst->data(), srcRect);
-        m_filterDevice->clear();
+        // m_filterDevice->readBytes(dst->data(), srcRect);
+        // m_filterDevice->clear();
     } else {
         // Write blur to temp device
-        KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
-        tempDevice.setRect(srcRect);
-        tempDevice.lazyGrowBufferWithoutInitialization();
-        m_filterDevice->readBytes(tempDevice.data(), srcRect);
-        m_filterDevice->clear();
+        // KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
+        // tempDevice.setRect(srcRect);
+        // tempDevice.lazyGrowBufferWithoutInitialization();
+        // m_filterDevice->readBytes(tempDevice.data(), srcRect);
+        // m_filterDevice->clear();
 
         // Blend the blur with the destination
         m_smearOp->composite(dst->data(), dstRect.width() * dst->pixelSize(),
