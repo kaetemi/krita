@@ -215,8 +215,7 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
     const qreal paintThickness = m_paintThicknessOption.apply(info);
     m_strategy->updateMask(m_dabCache, info, shape, scatteredPos, &m_dstDabRect, paintThickness);
 
-    // TODO: Add separate flag for this
-    const bool smearEnabled = m_smudgeRateOption.getMode() != KisSmudgeOption::BLURRING_MODE;
+    const bool useSmearOffset = m_smudgeRateOption.getSmearOffset();
     QPointF newCenterPos = QRectF(m_dstDabRect).center();
     /**
      * Save the center of the current dab to know where to read the
@@ -225,13 +224,13 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
      * brush (due to rounding effects), which will result in a
      * really weird quality.
      */
-    QRect srcDabRect = m_strategy->neededRect(smearEnabled
+    QRect srcDabRect = m_strategy->neededRect(useSmearOffset
         ? m_dstDabRect.translated((m_lastPaintPos - newCenterPos).toPoint())
         : m_dstDabRect, smudgeRadiusPortion);
 
     m_lastPaintPos = newCenterPos;
 
-    if (m_firstRun && smearEnabled) {
+    if (m_firstRun && useSmearOffset) {
         m_firstRun = false;
         return spacingInfo;
     }

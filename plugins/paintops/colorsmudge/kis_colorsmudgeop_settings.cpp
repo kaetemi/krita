@@ -104,6 +104,30 @@ QList<KisUniformPaintOpPropertySP> KisColorSmudgeOpSettings::uniformProperties(K
 
         {
             KisUniformPaintOpPropertyCallback *prop =
+                new KisUniformPaintOpPropertyCallback(KisUniformPaintOpPropertyCallback::Bool, KoID("smudge_smear_offset", i18n("Smear Offset")), settings, 0);
+
+            prop->setReadCallback(
+                [](KisUniformPaintOpProperty *prop) {
+                    KisSmudgeOption option;
+                    option.readOptionSetting(prop->settings().data());
+
+                    prop->setValue(option.getSmearOffset());
+                });
+            prop->setWriteCallback(
+                [](KisUniformPaintOpProperty *prop) {
+                    KisSmudgeOption option;
+                    option.readOptionSetting(prop->settings().data());
+                    option.setSmearOffset(prop->value().toBool());
+                    option.writeOptionSetting(prop->settings().data());
+                });
+
+            QObject::connect(updateProxy, SIGNAL(sigSettingsChanged()), prop, SLOT(requestReadValue()));
+            prop->requestReadValue();
+            props << toQShared(prop);
+        }
+
+        {
+            KisUniformPaintOpPropertyCallback *prop =
                 new KisUniformPaintOpPropertyCallback(KisUniformPaintOpPropertyCallback::Bool, KoID("smudge_smear_alpha", i18n("Smear Alpha")), settings, 0);
 
             prop->setReadCallback(

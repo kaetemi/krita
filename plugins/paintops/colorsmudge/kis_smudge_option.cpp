@@ -40,6 +40,7 @@ void KisSmudgeOption::writeOptionSetting(KisPropertiesConfigurationSP setting) c
 {
     KisRateOption::writeOptionSetting(setting);
     setting->setProperty(m_id.id() + "Mode", m_mode);
+    setting->setProperty(m_id.id() + "SmearOffset", m_smearOffset);
     setting->setProperty(m_id.id() + "SmearAlpha", m_smearAlpha);
     setting->setProperty(m_id.id() + "UseNewEngine", m_useNewEngine);
 }
@@ -49,8 +50,19 @@ void KisSmudgeOption::readOptionSetting(const KisPropertiesConfigurationSP setti
     KisRateOption::readOptionSetting(setting);
 
     m_mode = (Mode)setting->getInt(m_id.id() + "Mode", SMEARING_MODE);
+    m_smearOffset = setting->getBool(m_id.id() + "SmearOffset", true);
     m_smearAlpha = setting->getBool(m_id.id() + "SmearAlpha", true);
     m_useNewEngine = setting->getBool(m_id.id() + "UseNewEngine", false);
+}
+
+bool KisSmudgeOption::getSmearOffset() const
+{
+    return m_smearOffset;
+}
+
+void KisSmudgeOption::setSmearOffset(bool smearOffset)
+{
+    m_smearOffset = smearOffset;
 }
 
 bool KisSmudgeOption::getSmearAlpha() const
