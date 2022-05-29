@@ -13,6 +13,7 @@
 #include <kis_gaussian_kernel.h>
 #include <kis_lod_transform.h>
 #include <kis_transaction.h>
+#include <kis_random_sub_accessor.h>
 
 #include "kis_painter.h"
 #include "kis_fixed_paint_device.h"
@@ -138,6 +139,7 @@ void KisColorSmudgeStrategyBase::initializePaintingImpl(const KoColorSpace *dstC
     if (m_smudgeMode == KisSmudgeOption::BLURRING_MODE) {
         m_filterDevice = new KisPaintDevice(dstColorSpace);
         m_filterDevice->setDefaultBounds(m_initializationPainter->device()->defaultBounds());
+        m_filterAccessor = m_filterDevice->createRandomSubAccessor();
     }
 }
 
@@ -364,17 +366,45 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
                                      channelFlags, nullptr);
     transaction.end();
 
+    // Scale 2x
+    KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
+    KisFixedPaintDevice &scaleDst = opaqueCopy ? *dst : tempDevice;
+    if (!opaqueCopy) {
+        tempDevice.setRect(dstRect);
+        tempDevice.lazyGrowBufferWithoutInitialization();
+    }
+    KisRandomSubAccessorSP acc = m_filterDevice->createRandomSubAccessor();
+    qreal horizMid = (qreal)dstRect.width() * 0.5;
+    qreal vertMid = (qreal)dstRect.height() * 0.5;
+    //qreal horizOffset = srcRect.x() - dstRect.x();
+    //qreal vertOffset = srcRect.y() - dstRect.y();
+    qreal scaleFactor = 1.0 / 1.1;
+    for (int y = 0; y < dstRect.height(); ++y) {
+        qreal yOffset = (qreal)y - vertMid;
+        qreal yOffHalf = yOffset * scaleFactor;
+        qreal ySrc = (qreal)srcRect.y() + yOffHalf + vertMid;
+        for (int x = 0; x < dstRect.width(); ++x) {
+            qreal xOffset = (qreal)x - horizMid;
+            qreal xOffHalf = xOffset * scaleFactor;
+            qreal xSrc = (qreal)srcRect.x() + xOffHalf + horizMid;
+            acc->moveTo(xSrc, ySrc);
+            //printf("%f, %f, %i, %i\n", xSrc, ySrc, x + dstRect.x(), y + dstRect.y());
+            acc->sampledRawData(scaleDst.data() + (dstRect.width() * y + x) * scaleDst.pixelSize());
+        }
+    }
+    m_filterDevice->clear();
+
     if (opaqueCopy) {
         // Write blur directly to dst
-        m_filterDevice->readBytes(dst->data(), srcRect);
-        m_filterDevice->clear();
+        // m_filterDevice->readBytes(dst->data(), srcRect);
+        // m_filterDevice->clear();
     } else {
         // Write blur to temp device
-        KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
-        tempDevice.setRect(srcRect);
-        tempDevice.lazyGrowBufferWithoutInitialization();
-        m_filterDevice->readBytes(tempDevice.data(), srcRect);
-        m_filterDevice->clear();
+        // KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
+        // tempDevice.setRect(srcRect);
+        // tempDevice.lazyGrowBufferWithoutInitialization();
+        // m_filterDevice->readBytes(tempDevice.data(), srcRect);
+        // m_filterDevice->clear();
 
         // Blend the blur with the destination
         m_smearOp->composite(dst->data(), dstRect.width() * dst->pixelSize(),

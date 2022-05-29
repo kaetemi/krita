@@ -134,6 +134,7 @@ private:
     KisSmudgeOption::Mode m_smudgeMode {KisSmudgeOption::DULLING_MODE};
     
     KisPaintDeviceSP m_filterDevice;
+    KisRandomSubAccessorSP m_filterAccessor;
 };
 
 
