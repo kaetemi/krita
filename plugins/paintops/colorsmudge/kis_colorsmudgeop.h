@@ -30,6 +30,7 @@
 #include "kis_rate_option.h"
 #include "kis_smudge_option.h"
 #include "kis_smudge_radius_option.h"
+#include "KisSmudgeScalingOption.h"
 #include "KisOverlayPaintDeviceWrapper.h"
 
 class QPointF;
@@ -69,6 +70,7 @@ private:
     KisSmudgeOption           m_smudgeRateOption;
     KisRateOption             m_colorRateOption;
     KisSmudgeRadiusOption     m_smudgeRadiusOption;
+    KisSmudgeScalingOption    m_smudgeScalingOption;
     KisOverlayModeOption      m_overlayModeOption;
     KisPressureRotationOption m_rotationOption;
     KisPressureScatterOption  m_scatterOption;

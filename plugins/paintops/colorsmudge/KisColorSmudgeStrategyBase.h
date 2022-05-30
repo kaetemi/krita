@@ -112,17 +112,17 @@ public:
                     KisFixedPaintDeviceSP maskDab, bool preserveMaskDab,
                     const QRect &neededRect, const QRect &srcRect, const QRect &dstRect,
                     const KoColor &currentPaintColor, qreal opacity, qreal smudgeRateValue,
-                    qreal maxPossibleSmudgeRateValue, qreal colorRateValue, qreal smudgeRadiusValue);
+                    qreal maxPossibleSmudgeRateValue, qreal smudgeScalingValue, qreal colorRateValue, qreal smudgeRadiusValue);
 
     void blendInBackgroundWithSmearing(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &srcRect,
-                                       const QRect &dstRect, const quint8 smudgeRateOpacity);
+                                       const QRect &dstRect, const quint8 smudgeRateOpacity, const qreal smudgeScalingValue);
 
     void blendInBackgroundWithDulling(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &dstRect,
                                       const KoColor &preparedDullingColor, const quint8 smudgeRateOpacity);
 
     void blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src, const QRect &neededRect,
                                        const QRect &srcRect, const QRect &dstRect,
-                                       const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue);
+                                       const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue, const qreal smudgeScalingValue);
 
 protected:
     const KoCompositeOp * m_colorRateOp {nullptr};

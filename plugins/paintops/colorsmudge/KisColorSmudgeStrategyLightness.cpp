@@ -136,8 +136,8 @@ QVector<QRect>
 KisColorSmudgeStrategyLightness::paintDab(const QRect &neededRect, const QRect &srcRect, const QRect &dstRect,
                                           const KoColor &currentPaintColor,
                                           qreal opacity, qreal colorRateValue, qreal smudgeRateValue,
-                                          qreal maxPossibleSmudgeRateValue, qreal paintThicknessValue,
-                                          qreal smudgeRadiusValue)
+                                          qreal maxPossibleSmudgeRateValue, qreal smudgeScalingValue,
+                                          qreal paintThicknessValue, qreal smudgeRadiusValue)
 {
     const int numPixels = dstRect.width() * dstRect.height();
 
@@ -157,6 +157,7 @@ KisColorSmudgeStrategyLightness::paintDab(const QRect &neededRect, const QRect &
         opacity,
         smudgeRateValue,
         maxPossibleSmudgeRateValue,
+        smudgeScalingValue,
         colorRateValue,
         smudgeRadiusValue);
 

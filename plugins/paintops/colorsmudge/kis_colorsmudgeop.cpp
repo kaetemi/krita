@@ -63,6 +63,7 @@ KisColorSmudgeOp::KisColorSmudgeOp(const KisPaintOpSettingsSP settings, KisPaint
     m_rateOption.readOptionSetting(settings);
     m_paintThicknessOption.readOptionSetting(settings);
     m_smudgeRateOption.readOptionSetting(settings);
+    m_smudgeScalingOption.readOptionSetting(settings);
     m_colorRateOption.readOptionSetting(settings);
 
     m_overlayModeOption.readOptionSetting(settings);
@@ -78,6 +79,7 @@ KisColorSmudgeOp::KisColorSmudgeOp(const KisPaintOpSettingsSP settings, KisPaint
     m_rateOption.resetAllSensors();
     m_paintThicknessOption.resetAllSensors();
     m_smudgeRateOption.resetAllSensors();
+    m_smudgeScalingOption.resetAllSensors();
     m_colorRateOption.resetAllSensors();
 
     m_rotationOption.resetAllSensors();
@@ -239,6 +241,7 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
     const qreal colorRate = m_colorRateOption.isChecked() ? m_colorRateOption.computeSizeLikeValue(info) : 0.0;
     const qreal smudgeRate = m_smudgeRateOption.isChecked() ? m_smudgeRateOption.computeSizeLikeValue(info) : 1.0;
     const qreal maxSmudgeRate = m_smudgeRateOption.getRate();
+    const qreal smudgeScaling = m_smudgeScalingOption.isChecked() ? m_smudgeScalingOption.computeSizeLikeValue(info) : 1.0;
     const qreal fpOpacity = m_opacityOption.getOpacityf(info);
 
     KoColor paintColor = m_paintColor;
@@ -255,8 +258,8 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
             m_strategy->paintDab(neededRect, srcDabRect, m_dstDabRect,
                                  paintColor,
                                  fpOpacity, colorRate,
-                                 smudgeRate,
-                                 maxSmudgeRate,
+                                 smudgeRate, maxSmudgeRate,
+                                 smudgeScaling,
                                  paintThickness,
                                  smudgeRadiusPortion);
 

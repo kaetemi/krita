@@ -71,7 +71,7 @@ QVector<QRect> KisColorSmudgeStrategyWithOverlay::paintDab(const QRect &neededRe
                                                            const QRect &srcRect, const QRect &dstRect,
                                                            const KoColor &currentPaintColor, qreal opacity,
                                                            qreal colorRateValue, qreal smudgeRateValue,
-                                                           qreal maxPossibleSmudgeRateValue,
+                                                           qreal maxPossibleSmudgeRateValue, qreal smudgeScalingValue,
                                                            qreal lightnessStrengthValue, qreal smudgeRadiusValue)
 {
     Q_UNUSED(lightnessStrengthValue);
@@ -100,6 +100,7 @@ QVector<QRect> KisColorSmudgeStrategyWithOverlay::paintDab(const QRect &neededRe
                opacity,
                smudgeRateValue,
                maxPossibleSmudgeRateValue,
+               smudgeScalingValue,
                colorRateValue, smudgeRadiusValue);
 
     m_layerOverlayDevice->writeRects(mirroredRects);

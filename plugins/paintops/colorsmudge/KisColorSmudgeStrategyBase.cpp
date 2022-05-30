@@ -13,6 +13,7 @@
 #include <kis_gaussian_kernel.h>
 #include <kis_lod_transform.h>
 #include <kis_transaction.h>
+#include <kis_random_sub_accessor.h>
 
 #include "kis_painter.h"
 #include "kis_fixed_paint_device.h"
@@ -135,10 +136,8 @@ void KisColorSmudgeStrategyBase::initializePaintingImpl(const KoColorSpace *dstC
     m_colorRateOp = dstColorSpace->compositeOp(colorRateCompositeOpId);
     m_preparedDullingColor.convertTo(dstColorSpace);
 
-    if (m_smudgeMode == KisSmudgeOption::BLURRING_MODE) {
-        m_filterDevice = new KisPaintDevice(dstColorSpace);
-        m_filterDevice->setDefaultBounds(m_initializationPainter->device()->defaultBounds());
-    }
+    m_filterDevice = new KisPaintDevice(dstColorSpace);
+    m_filterDevice->setDefaultBounds(m_initializationPainter->device()->defaultBounds());
 }
 
 QRect KisColorSmudgeStrategyBase::neededRect(const QRect &srcRect, qreal radiusFactor)
@@ -215,8 +214,8 @@ void
 KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, KisColorSmudgeSourceSP srcSampleDevice,
                                        KisFixedPaintDeviceSP maskDab, bool preserveMaskDab, const QRect &neededRect,
                                        const QRect &srcRect, const QRect &dstRect, const KoColor &currentPaintColor, qreal opacity,
-                                       qreal smudgeRateValue, qreal maxPossibleSmudgeRateValue, qreal colorRateValue,
-                                       qreal smudgeRadiusValue)
+                                       qreal smudgeRateValue, qreal maxPossibleSmudgeRateValue, qreal smudgeScalingValue,
+                                       qreal colorRateValue, qreal smudgeRadiusValue)
 {
     const quint8 colorRateOpacity = this->colorRateOpacity(opacity, smudgeRateValue, colorRateValue, maxPossibleSmudgeRateValue);
 
@@ -266,11 +265,11 @@ KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, 
             const quint8 smudgeRateOpacity = this->smearRateOpacity(opacity, smudgeRateValue);
             blendInBackgroundWithBlurring(m_blendDevice, srcSampleDevice,
                                           neededRect, srcRect, dstRect,
-                                          smudgeRateOpacity, smudgeRadiusValue);
+                                          smudgeRateOpacity, smudgeRadiusValue, smudgeScalingValue);
         } else {
             const quint8 smudgeRateOpacity = this->smearRateOpacity(opacity, smudgeRateValue);
             blendInBackgroundWithSmearing(m_blendDevice, srcSampleDevice,
-                                          srcRect, dstRect, smudgeRateOpacity);
+                                          srcRect, dstRect, smudgeRateOpacity, smudgeScalingValue);
         }
 
         if (colorRateOpacity > 0) {
@@ -299,18 +298,63 @@ KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, 
 
 void KisColorSmudgeStrategyBase::blendInBackgroundWithSmearing(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src,
                                                                const QRect &srcRect, const QRect &dstRect,
-                                                               const quint8 smudgeRateOpacity)
+                                                               const quint8 smudgeRateOpacity, const qreal smudgeScalingValue)
 {
-    if (m_smearOp->id() == COMPOSITE_COPY && smudgeRateOpacity == OPACITY_OPAQUE_U8) {
-        src->readBytes(dst->data(), srcRect);
-    } else {
+    const bool opaqueCopy = m_smearOp->id() == COMPOSITE_COPY && smudgeRateOpacity == OPACITY_OPAQUE_U8;
+    const bool useScaling = smudgeScalingValue != 1.0;
+    
+    if (!opaqueCopy) {
+        // Copy the original data to the destination
         src->readBytes(dst->data(), dstRect);
+    }
 
-        KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
-        tempDevice.setRect(srcRect);
+    KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
+    if (!opaqueCopy) {
+        tempDevice.setRect(dstRect);
         tempDevice.lazyGrowBufferWithoutInitialization();
+    }
+    if (useScaling)
+    {
+        // Copy the original data into the filtering device
+        KisPainter p(m_filterDevice);
+        p.setCompositeOpId(COMPOSITE_COPY);
+        src->bitBlt(&p, srcRect.topLeft(), srcRect);
 
-        src->readBytes(tempDevice.data(), srcRect);
+        // Scale 1x - 2x
+        KisFixedPaintDevice &scaleDst = opaqueCopy ? *dst : tempDevice;
+        KisRandomSubAccessorSP accessor = m_filterDevice->createRandomSubAccessor();
+        qreal horizMid = (qreal)dstRect.width() * 0.5;
+        qreal vertMid = (qreal)dstRect.height() * 0.5;
+        qreal scaleFactor = 1.0 / smudgeScalingValue;
+        for (int y = 0; y < dstRect.height(); ++y) {
+            qreal yOffset = (qreal)y - vertMid;
+            qreal yOffHalf = yOffset * scaleFactor;
+            qreal ySrc = (qreal)srcRect.y() + yOffHalf + vertMid;
+            for (int x = 0; x < dstRect.width(); ++x) {
+                qreal xOffset = (qreal)x - horizMid;
+                qreal xOffHalf = xOffset * scaleFactor;
+                qreal xSrc = (qreal)srcRect.x() + xOffHalf + horizMid;
+                accessor->moveTo(xSrc, ySrc);
+                accessor->sampledRawData(scaleDst.data() + (dstRect.width() * y + x) * scaleDst.pixelSize());
+            }
+        }
+        m_filterDevice->clear();
+    }
+
+    if (opaqueCopy) {
+        if (!useScaling)
+        {
+            // Write src directly to dst
+            src->readBytes(dst->data(), srcRect);
+        }
+    } else {
+        if (!useScaling)
+        {
+            // Write src to temp device
+            src->readBytes(tempDevice.data(), srcRect);
+        }
+
+        // Blend the smear with the destination
         m_smearOp->composite(dst->data(), dstRect.width() * dst->pixelSize(),
                              tempDevice.data(), dstRect.width() * tempDevice.pixelSize(), // stride should be random non-zero
                              0, 0,
@@ -339,9 +383,11 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithDulling(KisFixedPaintDevic
 
 void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDeviceSP dst, KisColorSmudgeSourceSP src,
                                                                const QRect &neededRect, const QRect &srcRect, const QRect &dstRect,
-                                                               const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue)
+                                                               const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue,
+                                                               const qreal smudgeScalingValue)
 {
     const bool opaqueCopy = m_smearOp->id() == COMPOSITE_COPY && smudgeRateOpacity == OPACITY_OPAQUE_U8;
+    const bool useScaling = smudgeScalingValue != 1.0;
     
     if (!opaqueCopy) {
         // Copy the original data to the destination
@@ -364,17 +410,48 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
                                      channelFlags, nullptr);
     transaction.end();
 
-    if (opaqueCopy) {
-        // Write blur directly to dst
-        m_filterDevice->readBytes(dst->data(), srcRect);
-        m_filterDevice->clear();
-    } else {
-        // Write blur to temp device
-        KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
-        tempDevice.setRect(srcRect);
+    KisFixedPaintDevice tempDevice(src->colorSpace(), m_memoryAllocator);
+    if (!opaqueCopy) {
+        tempDevice.setRect(dstRect);
         tempDevice.lazyGrowBufferWithoutInitialization();
-        m_filterDevice->readBytes(tempDevice.data(), srcRect);
+    }
+    if (useScaling)
+    {
+        // Scale 1x - 2x
+        KisFixedPaintDevice &scaleDst = opaqueCopy ? *dst : tempDevice;
+        KisRandomSubAccessorSP accessor = m_filterDevice->createRandomSubAccessor();
+        qreal horizMid = (qreal)dstRect.width() * 0.5;
+        qreal vertMid = (qreal)dstRect.height() * 0.5;
+        qreal scaleFactor = 1.0 / smudgeScalingValue;
+        for (int y = 0; y < dstRect.height(); ++y) {
+            qreal yOffset = (qreal)y - vertMid;
+            qreal yOffHalf = yOffset * scaleFactor;
+            qreal ySrc = (qreal)srcRect.y() + yOffHalf + vertMid;
+            for (int x = 0; x < dstRect.width(); ++x) {
+                qreal xOffset = (qreal)x - horizMid;
+                qreal xOffHalf = xOffset * scaleFactor;
+                qreal xSrc = (qreal)srcRect.x() + xOffHalf + horizMid;
+                accessor->moveTo(xSrc, ySrc);
+                accessor->sampledRawData(scaleDst.data() + (dstRect.width() * y + x) * scaleDst.pixelSize());
+            }
+        }
         m_filterDevice->clear();
+    }
+
+    if (opaqueCopy) {
+        if (!useScaling)
+        {
+            // Write blur directly to dst
+            m_filterDevice->readBytes(dst->data(), srcRect);
+            m_filterDevice->clear();
+        }
+    } else {
+        if (!useScaling)
+        {
+            // Write blur to temp device
+            m_filterDevice->readBytes(tempDevice.data(), srcRect);
+            m_filterDevice->clear();
+        }
 
         // Blend the blur with the destination
         m_smearOp->composite(dst->data(), dstRect.width() * dst->pixelSize(),

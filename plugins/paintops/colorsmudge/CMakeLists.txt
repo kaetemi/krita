@@ -9,6 +9,7 @@ set(kritacolorsmudgepaintop_SOURCES
     kis_smudge_option.cpp
     kis_smudge_option_widget.cpp
     kis_smudge_radius_option.cpp
+    KisSmudgeScalingOption.cpp
     KisColorSmudgeStrategy.cpp
     KisColorSmudgeSource.cpp
     KisColorSmudgeStrategyBase.cpp

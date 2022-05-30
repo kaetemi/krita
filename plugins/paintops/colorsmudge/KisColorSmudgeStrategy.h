@@ -35,6 +35,7 @@ public:
                                     qreal colorRateValue,
                                     qreal smudgeRateValue,
                                     qreal maxPossibleSmudgeRateValue,
+                                    qreal smudgeScalingValue,
                                     qreal lightnessStrengthValue,
                                     qreal smudgeRadiusValue) = 0;
 

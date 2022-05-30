@@ -11,6 +11,7 @@
 #include "kis_smudge_option_widget.h"
 #include "kis_brush_option_widget.h"
 #include "kis_smudge_radius_option.h"
+#include "KisSmudgeScalingOption.h"
 
 #include <kis_properties_configuration.h>
 #include <kis_paintop_settings_widget.h>
@@ -54,6 +55,8 @@ KisColorSmudgeOpSettingsWidget::KisColorSmudgeOpSettingsWidget(QWidget* parent):
 
     m_radiusStrengthOptionWidget = new KisCurveOptionWidget(new KisSmudgeRadiusOption(), i18n("0.0"), i18n("1.0"));
     addPaintOpOption(m_radiusStrengthOptionWidget);
+
+    addPaintOpOption(new KisCurveOptionWidget(new KisSmudgeScalingOption(), i18n("100%"), i18n("200%")));
 
     addPaintOpOption(new KisCurveOptionWidget(
         new KisRateOption(KoID("ColorRate", i18nc("Color rate of active Foreground color", "Color Rate")), KisPaintOpOption::GENERAL, false),

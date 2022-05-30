@@ -29,6 +29,7 @@ public:
     QVector<QRect> paintDab(const QRect &neededRect, const QRect &srcRect, const QRect &dstRect,
                             const KoColor &currentPaintColor, qreal opacity,
                             qreal colorRateValue, qreal smudgeRateValue, qreal maxPossibleSmudgeRateValue,
+                            qreal smudgeScalingValue,
                             qreal lightnessStrengthValue, qreal smudgeRadiusValue) override;
 
 protected:

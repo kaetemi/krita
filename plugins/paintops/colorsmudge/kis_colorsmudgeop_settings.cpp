@@ -7,6 +7,7 @@
 #include "kis_colorsmudgeop_settings.h"
 
 #include "kis_smudge_option.h"
+#include "KisSmudgeScalingOption.h"
 
 struct KisColorSmudgeOpSettings::Private
 {
@@ -78,11 +79,24 @@ QList<KisUniformPaintOpPropertySP> KisColorSmudgeOpSettings::uniformProperties(K
             prop->requestReadValue();
             props << toQShared(prop);
         }
+
         {
             KisCurveOptionUniformProperty *prop =
                 new KisCurveOptionUniformProperty(
                     "smudge_radius",
                     new KisSmudgeRadiusOption(),
+                    settings, 0);
+
+            QObject::connect(updateProxy, SIGNAL(sigSettingsChanged()), prop, SLOT(requestReadValue()));
+            prop->requestReadValue();
+            props << toQShared(prop);
+        }
+
+        {
+            KisCurveOptionUniformProperty *prop =
+                new KisCurveOptionUniformProperty(
+                    "smudge_scaling",
+                    new KisSmudgeScalingOption(),
                     settings, 0);
 
             QObject::connect(updateProxy, SIGNAL(sigSettingsChanged()), prop, SLOT(requestReadValue()));
