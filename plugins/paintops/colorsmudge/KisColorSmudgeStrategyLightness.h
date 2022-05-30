@@ -16,7 +16,7 @@ class KisColorSmudgeStrategyLightness : public KisColorSmudgeStrategyBase
 public:
 
     KisColorSmudgeStrategyLightness(KisPainter *painter,
-                                    bool smearAlpha,
+                                    bool smearAlpha, bool smudgeScaling,
                                     KisSmudgeOption::Mode smudgeMode, 
                                     KisPressurePaintThicknessOption::ThicknessMode thicknessMode);
 

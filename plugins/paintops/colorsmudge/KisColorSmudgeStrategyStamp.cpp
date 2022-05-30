@@ -11,9 +11,9 @@
 #include "KisOverlayPaintDeviceWrapper.h"
 
 
-KisColorSmudgeStrategyStamp::KisColorSmudgeStrategyStamp(KisPainter *painter, KisImageSP image, bool smearAlpha,
+KisColorSmudgeStrategyStamp::KisColorSmudgeStrategyStamp(KisPainter *painter, KisImageSP image, bool smearAlpha, bool smudgeScaling,
                                                          KisSmudgeOption::Mode smudgeMode, bool useOverlayMode)
-        : KisColorSmudgeStrategyWithOverlay(painter, image, smearAlpha, smudgeMode, useOverlayMode)
+        : KisColorSmudgeStrategyWithOverlay(painter, image, smearAlpha, smudgeScaling, smudgeMode, useOverlayMode)
         , m_origDab(new KisFixedPaintDevice(m_layerOverlayDevice->overlayColorSpace())) // TODO: check compositionSourceColorSpace!
 {
 }

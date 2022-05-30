@@ -13,7 +13,7 @@ struct KisColorSmudgeStrategyStamp : public KisColorSmudgeStrategyWithOverlay
 {
     KisColorSmudgeStrategyStamp(KisPainter *painter,
                                 KisImageSP image,
-                                bool smearAlpha,
+                                bool smearAlpha, bool smudgeScaling,
                                 KisSmudgeOption::Mode smudgeMode,
                                 bool useOverlayMode);
 

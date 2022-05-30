@@ -15,9 +15,10 @@
 #include "KisOverlayPaintDeviceWrapper.h"
 
 KisColorSmudgeStrategyWithOverlay::KisColorSmudgeStrategyWithOverlay(KisPainter *painter, KisImageSP image,
-                                                                     bool smearAlpha, KisSmudgeOption::Mode smudgeMode,
+                                                                     bool smearAlpha, bool smudgeScaling,
+                                                                     KisSmudgeOption::Mode smudgeMode,
                                                                      bool useOverlayMode)
-        : KisColorSmudgeStrategyBase(painter, smudgeMode)
+        : KisColorSmudgeStrategyBase(painter, smudgeMode, smudgeScaling)
         , m_maskDab(new KisFixedPaintDevice(KoColorSpaceRegistry::instance()->alpha8()))
         , m_smearAlpha(smearAlpha)
 {

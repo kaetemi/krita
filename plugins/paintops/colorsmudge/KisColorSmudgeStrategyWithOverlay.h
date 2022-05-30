@@ -16,7 +16,7 @@ class KisColorSmudgeStrategyWithOverlay : public KisColorSmudgeStrategyBase
 public:
     KisColorSmudgeStrategyWithOverlay(KisPainter *painter,
                                       KisImageSP image,
-                                      bool smearAlpha,
+                                      bool smearAlpha, bool smudgeScaling,
                                       KisSmudgeOption::Mode smudgeMode,
                                       bool useOverlayMode);
 
@@ -34,7 +34,7 @@ public:
 
 protected:
     KisFixedPaintDeviceSP m_maskDab;
-    bool m_shouldPreserveMaskDab = true;
+    bool m_shouldPreserveMaskDab {true};
     QScopedPointer<KisOverlayPaintDeviceWrapper> m_layerOverlayDevice;
 
 private:
@@ -42,7 +42,7 @@ private:
     KisColorSmudgeSourceSP m_sourceWrapperDevice;
     KisPainter m_finalPainter;
     QScopedPointer<KisPainter> m_overlayPainter;
-    bool m_smearAlpha = true;
+    bool m_smearAlpha {true};
 };
 
 

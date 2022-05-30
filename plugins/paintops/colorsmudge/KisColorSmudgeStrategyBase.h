@@ -78,7 +78,7 @@ public:
 
 public:
 
-    KisColorSmudgeStrategyBase(KisPainter *painter, KisSmudgeOption::Mode smudgeMode);
+    KisColorSmudgeStrategyBase(KisPainter *painter, KisSmudgeOption::Mode smudgeMode, bool smudgeScaling);
 
     virtual ~KisColorSmudgeStrategyBase();
 
@@ -124,6 +124,9 @@ public:
                                        const QRect &srcRect, const QRect &dstRect,
                                        const quint8 smudgeRateOpacity, const qreal smudgeRadiusValue, const qreal smudgeScalingValue);
 
+    static void scaleUp(KisFixedPaintDevice &dst, const QRect &rect,
+                        KisPaintDeviceSP src, const QRect &srcRect, const qreal factor);
+
 protected:
     const KoCompositeOp * m_colorRateOp {nullptr};
     KoColor m_preparedDullingColor;
@@ -132,6 +135,7 @@ protected:
 private:
     KisFixedPaintDeviceSP m_blendDevice;
     KisSmudgeOption::Mode m_smudgeMode {KisSmudgeOption::DULLING_MODE};
+    bool m_smudgeScaling {false};
     
     KisPaintDeviceSP m_filterDevice;
 };

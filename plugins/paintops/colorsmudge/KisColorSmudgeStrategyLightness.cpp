@@ -18,9 +18,11 @@
 #include "kis_algebra_2d.h"
 #include <KoBgrColorSpaceTraits.h>
 
-KisColorSmudgeStrategyLightness::KisColorSmudgeStrategyLightness(KisPainter *painter, bool smearAlpha,
-                                                                 KisSmudgeOption::Mode smudgeMode, KisPressurePaintThicknessOption::ThicknessMode thicknessMode)
-        : KisColorSmudgeStrategyBase(painter, smudgeMode)
+KisColorSmudgeStrategyLightness::KisColorSmudgeStrategyLightness(KisPainter *painter,
+                                                                 bool smearAlpha, bool smudgeScaling,
+                                                                 KisSmudgeOption::Mode smudgeMode,
+                                                                 KisPressurePaintThicknessOption::ThicknessMode thicknessMode)
+        : KisColorSmudgeStrategyBase(painter, smudgeMode, smudgeScaling)
         , m_maskDab(new KisFixedPaintDevice(KoColorSpaceRegistry::instance()->alpha8()))
         , m_origDab(new KisFixedPaintDevice(KoColorSpaceRegistry::instance()->rgb8()))
         , m_smearAlpha(smearAlpha)
