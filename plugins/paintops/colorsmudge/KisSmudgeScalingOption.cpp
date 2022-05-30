@@ -1,8 +1,7 @@
-/* This file is part of the KDE project
+/*
+ *  SPDX-FileCopyrightText: 2022 Jan Boon <jan.boon@kaetemi.be>
  *
- * SPDX-FileCopyrightText: 2022 Jan Boon <jan.boon@kaetemi.be>
- *
- * SPDX-License-Identifier: LGPL-2.0-or-later
+ *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 #include "KisSmudgeScalingOption.h"
