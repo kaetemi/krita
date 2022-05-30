@@ -19,7 +19,7 @@ public:
 
     virtual void initializePainting() = 0;
 
-    virtual QRect neededRect(const QRect &srcRect, qreal radiusFactor) = 0;
+    virtual QRect neededRect(const QRect &srcRect, qreal radiusFactor, qreal scalingFactor) = 0;
 
     virtual void updateMask(KisDabCache *dabCache,
                             const KisPaintInformation& info,

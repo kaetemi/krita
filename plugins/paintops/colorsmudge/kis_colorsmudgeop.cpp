@@ -234,7 +234,6 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
     QRect srcDabRect = useSmearOffset
         ? m_dstDabRect.translated((m_lastPaintPos - newCenterPos).toPoint())
         : m_dstDabRect;
-    QRect neededRect = m_strategy->neededRect(srcDabRect, smudgeRadiusPortion);
 
     m_lastPaintPos = newCenterPos;
 
@@ -248,6 +247,8 @@ KisSpacingInformation KisColorSmudgeOp::paintAt(const KisPaintInformation& info)
     const qreal maxSmudgeRate = m_smudgeRateOption.getRate();
     const qreal smudgeScaling = m_smudgeScalingOption.isChecked() ? m_smudgeScalingOption.computeSizeLikeValue(info) : 1.0;
     const qreal fpOpacity = m_opacityOption.getOpacityf(info);
+    
+    const QRect neededRect = m_strategy->neededRect(srcDabRect, smudgeRadiusPortion, smudgeScaling);
 
     KoColor paintColor = m_paintColor;
 

@@ -144,7 +144,7 @@ void KisColorSmudgeStrategyBase::initializePaintingImpl(const KoColorSpace *dstC
     }
 }
 
-QRect KisColorSmudgeStrategyBase::neededRect(const QRect &srcRect, qreal radiusFactor)
+QRect KisColorSmudgeStrategyBase::neededRect(const QRect &srcRect, qreal radiusFactor, qreal scalingFactor)
 {
     if (m_smudgeMode == KisSmudgeOption::BLURRING_MODE) {
         int lod = m_initializationPainter->device()->defaultBounds()->currentLevelOfDetail();
@@ -153,6 +153,10 @@ QRect KisColorSmudgeStrategyBase::neededRect(const QRect &srcRect, qreal radiusF
         KisLodTransformScalar t(lod);
         const int halfWidth = KisGaussianKernel::kernelSizeFromRadius(t.scale(horizRadius)) / 2;
         const int halfHeight = KisGaussianKernel::kernelSizeFromRadius(t.scale(vertRadius)) / 2;
+        if (m_smudgeScaling) {
+            return neededScaleUpRect(srcRect, scalingFactor).adjusted(
+                -halfWidth * 2, -halfHeight * 2, halfWidth * 2, halfHeight * 2);
+        }
         return srcRect.adjusted(-halfWidth * 2, -halfHeight * 2, halfWidth * 2, halfHeight * 2);
     }
     return srcRect;
@@ -394,7 +398,7 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
     const qreal horizRadius = t.scale(((qreal)srcRect.width()) * smudgeRadiusValue / 2.0);
     const qreal vertRadius = t.scale(((qreal)srcRect.height()) * smudgeRadiusValue / 2.0);
     QBitArray channelFlags = QBitArray(m_filterDevice->colorSpace()->channelCount(), true);
-    KisGaussianKernel::applyGaussian(m_filterDevice, srcRect,
+    KisGaussianKernel::applyGaussian(m_filterDevice, useScaling ? neededScaleUpRect(srcRect, smudgeScalingValue) : srcRect,
                                      horizRadius, vertRadius,
                                      channelFlags, nullptr);
     transaction.end();
@@ -434,6 +438,27 @@ void KisColorSmudgeStrategyBase::blendInBackgroundWithBlurring(KisFixedPaintDevi
                              1, dstRect.width() * dstRect.height(),
                              smudgeRateOpacity);
     }
+}
+
+QRect KisColorSmudgeStrategyBase::neededScaleUpRect(const QRect &rect, const qreal factor)
+{
+    const qreal horizMid = (qreal)rect.width() * 0.5;
+    const qreal vertMid = (qreal)rect.height() * 0.5;
+    const qreal scaleFactor = 1.0 / factor;
+    qreal xOffsetLeft = -horizMid;
+    qreal xOffHalfLeft = xOffsetLeft * scaleFactor;
+    int xSrcLeft = rect.x() + qFloor(xOffHalfLeft + horizMid);
+    qreal xOffsetRight = (qreal)rect.width() - 1 - horizMid;
+    qreal xOffHalfRight = xOffsetRight * scaleFactor;
+    int xSrcRight = rect.x() + qCeil(xOffHalfRight + horizMid);
+    qreal yOffsetTop = -vertMid;
+    qreal yOffHalfTop = yOffsetTop * scaleFactor;
+    int ySrcTop = rect.y() + qFloor(yOffHalfTop + vertMid);
+    qreal yOffsetBottom = (qreal)rect.height() - 1 - vertMid;
+    qreal yOffHalfBottom = yOffsetBottom * scaleFactor;
+    int ySrcBottom = rect.y() + qCeil(yOffHalfBottom + vertMid);
+    QRect res = QRect(xSrcLeft, ySrcTop, xSrcRight - xSrcLeft + 1, ySrcBottom - ySrcTop + 1);
+    return res;
 }
 
 void KisColorSmudgeStrategyBase::scaleUp(KisFixedPaintDevice &dst, const QRect &dstRect,
