@@ -211,7 +211,7 @@ void KisColorSmudgeStrategyBase::sampleDullingColor(const QRect &srcRect, qreal 
 }
 
 void
-KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, KisColorSmudgeSourceSP srcSampleDevice,
+KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> &dstPainters, KisColorSmudgeSourceSP srcSampleDevice,
                                        KisFixedPaintDeviceSP maskDab, bool preserveMaskDab, const QRect &neededRect,
                                        const QRect &srcRect, const QRect &dstRect, const KoColor &currentPaintColor, qreal opacity,
                                        qreal smudgeRateValue, qreal maxPossibleSmudgeRateValue, qreal smudgeScalingValue,
@@ -233,7 +233,7 @@ KisColorSmudgeStrategyBase::blendBrush(const QVector<KisPainter *> dstPainters, 
     m_blendDevice->setRect(dstRect);
     m_blendDevice->lazyGrowBufferWithoutInitialization();
 
-    DabColoringStrategy &coloringStrategy = this->coloringStrategy();
+    const DabColoringStrategy &coloringStrategy = this->coloringStrategy();
 
     const quint8 dullingRateOpacity = this->dullingRateOpacity(opacity, smudgeRateValue);
 

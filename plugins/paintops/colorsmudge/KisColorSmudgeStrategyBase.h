@@ -108,7 +108,7 @@ public:
                                     KisFixedPaintDeviceSP tempFixedDevice, KisFixedPaintDeviceSP maskDab,
                                     KoColor *resultColor);
 
-    void blendBrush(const QVector<KisPainter *> dstPainters, KisColorSmudgeSourceSP srcSampleDevice,
+    void blendBrush(const QVector<KisPainter *> &dstPainters, KisColorSmudgeSourceSP srcSampleDevice,
                     KisFixedPaintDeviceSP maskDab, bool preserveMaskDab,
                     const QRect &neededRect, const QRect &srcRect, const QRect &dstRect,
                     const KoColor &currentPaintColor, qreal opacity, qreal smudgeRateValue,

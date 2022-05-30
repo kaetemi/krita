@@ -29,7 +29,7 @@ using KisColorSmudgeSourceSP = QSharedPointer<KisColorSmudgeSource>;
 
 struct KisColorSmudgeSourcePaintDevice : public KisColorSmudgeSource
 {
-    KisColorSmudgeSourcePaintDevice(KisOverlayPaintDeviceWrapper &overlayDevice, int overlayIndex = 0);
+    explicit KisColorSmudgeSourcePaintDevice(KisOverlayPaintDeviceWrapper &overlayDevice, int overlayIndex = 0);
 
     void readRects(const QVector<QRect> &rects) override;
 
@@ -44,7 +44,7 @@ private:
 
 struct KisColorSmudgeSourceImage : public KisColorSmudgeSource
 {
-    KisColorSmudgeSourceImage(KisImageSP image,
+    explicit KisColorSmudgeSourceImage(KisImageSP image,
                               KisOverlayPaintDeviceWrapper &overlayDevice);
 
     void readRects(const QVector<QRect> &rects) override;
